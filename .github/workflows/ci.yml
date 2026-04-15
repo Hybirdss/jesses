@@ -119,15 +119,17 @@ jobs:
           persist-credentials: false
 
       - name: govulncheck
-        # The go-version pin here is independent of the test matrix: it selects
-        # the stdlib symbol version the scanner reasons against. Pinning to
-        # 1.24.x picks up the fixes for GO-2025-4007 (crypto/x509 name-
-        # constraints quadratic), GO-2025-4008 (crypto/tls ALPN information
-        # leak), and GO-2025-4009 (encoding/pem quadratic). Project code
-        # still compiles on the `go 1.22` line declared in go.mod.
+        # `stable` picks the most recent GA Go release on the runner, so the
+        # scanner reasons against the latest-patched stdlib. This is
+        # independent of the test matrix (which honors the go.mod-declared
+        # minimum) and independent of what downstream users build with —
+        # govulncheck here answers "does the code call symbols that still
+        # have unpatched CVEs in the newest available toolchain?" If new
+        # stdlib CVEs land that require a minimum-version bump in the
+        # project itself, that is a separate decision recorded in an ADR.
         uses: golang/govulncheck-action@v1
         with:
-          go-version-input: "1.24.x"
+          go-version-input: "stable"
           check-latest: true
 
   mod-tidy:
