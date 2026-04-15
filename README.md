@@ -27,27 +27,19 @@ Or run the full 7-event demo in [`examples/demo-bounty/reproduce.sh`](./examples
 
 ## What it does
 
-Sample verdict on a session with seven tool-use events, three of them denied at hook time:
+Sample verdict on a session with eight tool-use events, three of them denied at hook time:
 
-```
-╭── jesses verify   session 1dd680d0964ce672… ─────────────────────────────╮
-│                                                                          │
-│               ✗  INVALID                                                 │
-│                  5 of 7 gates pass · 1 or more mandatory gates failed    │
-│                                                                          │
-├─ mandatory ──────────────────────────────────────────────────────────────┤
-│ ✓ G1  envelope signature         ed25519 signature valid                 │
-│ ✓ G2  merkle root                8 leaves, root 1dd680d0964ce672…        │
-│ ✓ G3  rekor pre-commit           local hash match (log index 0)          │
-│ ✓ G4  scope hash                 scope.txt matches committed hash        │
-│ ✗ G5  policy compliance          3 of 8 events breached policy           │
-│ ✓ G7  deliverable provenance     5/5 citations valid, 3 bare claims      │
-├─ advisory ───────────────────────────────────────────────────────────────┤
-│ ⚠ G6  opentimestamps anchor      pending bitcoin confirmation            │
-╰──────────────────────────────────────────────────────────────────────────╯
-```
+![jesses verify output](./examples/demo-bounty/screenshots/verify.svg)
 
-`jesses stats` shows the same session as a compact dashboard with deny-flagged hosts highlighted; `jesses show <file.jes>` pretty-prints the envelope's predicate without doing verification.
+`jesses stats` is the same session as a compact dashboard with deny-flagged hosts highlighted:
+
+![jesses stats output](./examples/demo-bounty/screenshots/stats.svg)
+
+`jesses show <file.jes>` pretty-prints the envelope's predicate without running verification — useful for quick scans and for embedding in PR descriptions:
+
+![jesses show output](./examples/demo-bounty/screenshots/show.svg)
+
+All three outputs are real screenshots from [`examples/demo-bounty/reproduce.sh`](./examples/demo-bounty/reproduce.sh). Regenerate them with `LC_ALL=C script -qc "./jesses <subcommand> …" out.ansi` piped through [`ansi2svg.py`](./examples/demo-bounty/screenshots/ansi2svg.py).
 
 Seven gates, each mapped to a specific threat ([`THREAT_MODEL.md`](./THREAT_MODEL.md)):
 

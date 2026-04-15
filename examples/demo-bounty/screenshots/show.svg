@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 824 780" width="824" height="780" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="14">
+<rect width="824" height="780" rx="8" fill="#0b0d10"/>
+<g transform="translate(16 14)">
+<circle cx="0" cy="6" r="6" fill="#ff6058"/>
+<circle cx="18" cy="6" r="6" fill="#ffbd2e"/>
+<circle cx="36" cy="6" r="6" fill="#27c93f"/>
+<text x="304.00000000000006" y="10" fill="#8895a6" font-size="12">jesses show session.jes</text>
+</g>
+<text x="16.0" y="62" fill="#dde4ee" xml:space="preserve">╭── envelope   </text>
+<text x="148.0" y="62" fill="#dde4ee" opacity="0.55" xml:space="preserve">session.jes</text>
+<text x="244.8" y="62" fill="#dde4ee" xml:space="preserve"> ────────────────────────────────────────────────╮</text>
+<text x="16.0" y="84" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="84" fill="#dde4ee" opacity="0.55" xml:space="preserve">type</text>
+<text x="68.8" y="84" fill="#dde4ee" xml:space="preserve">   in-toto Statement V1 · DSSE-ish · ed25519 signed                  │</text>
+<text x="16.0" y="106" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="106" fill="#dde4ee" opacity="0.55" xml:space="preserve">predicate</text>
+<text x="112.8" y="106" fill="#dde4ee" xml:space="preserve"> v0.1  ·  https://jesses.dev/v0.1/action-envelope               │</text>
+<text x="16.0" y="128" fill="#dde4ee" xml:space="preserve">├─ </text>
+<text x="42.4" y="128" fill="#dde4ee" opacity="0.55" xml:space="preserve">session</text>
+<text x="104.0" y="128" fill="#dde4ee" xml:space="preserve"> ────────────────────────────────────────────────────────────────┤</text>
+<text x="16.0" y="150" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="150" fill="#dde4ee" opacity="0.55" xml:space="preserve">id</text>
+<text x="51.2" y="150" fill="#dde4ee" xml:space="preserve">     777c0ea1d813310c6d0406cf2fc54512                                  │</text>
+<text x="16.0" y="172" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="172" fill="#dde4ee" opacity="0.55" xml:space="preserve">started</text>
+<text x="95.2" y="172" fill="#dde4ee" xml:space="preserve"> 2026-04-15T23:46:23.540988237Z                                   │</text>
+<text x="16.0" y="194" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="194" fill="#dde4ee" opacity="0.55" xml:space="preserve">ended</text>
+<text x="77.6" y="194" fill="#dde4ee" xml:space="preserve">  2026-04-15T23:46:23.547904467Z   </text>
+<text x="385.6" y="194" fill="#dde4ee" opacity="0.55" xml:space="preserve">(6ms)</text>
+<text x="429.6" y="194" fill="#dde4ee" xml:space="preserve">                            │</text>
+<text x="16.0" y="216" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="216" fill="#dde4ee" opacity="0.55" xml:space="preserve">scope hash</text>
+<text x="121.6" y="216" fill="#dde4ee" xml:space="preserve"> </text>
+<text x="130.4" y="216" fill="#6ecfd9" xml:space="preserve">8d97f7a7bd3a2db1…</text>
+<text x="280.0" y="216" fill="#dde4ee" opacity="0.55" xml:space="preserve">   (sha256)</text>
+<text x="376.8" y="216" fill="#dde4ee" xml:space="preserve">                                  │</text>
+<text x="16.0" y="238" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="238" fill="#dde4ee" opacity="0.55" xml:space="preserve">pub key</text>
+<text x="95.2" y="238" fill="#dde4ee" xml:space="preserve"> </text>
+<text x="104.0" y="238" fill="#6ecfd9" xml:space="preserve">85ad1748057d7fc6…</text>
+<text x="253.6" y="238" fill="#dde4ee" opacity="0.55" xml:space="preserve">   (ed25519)</text>
+<text x="359.2" y="238" fill="#dde4ee" xml:space="preserve">                                    │</text>
+<text x="16.0" y="260" fill="#dde4ee" xml:space="preserve">├─ </text>
+<text x="42.4" y="260" fill="#dde4ee" opacity="0.55" xml:space="preserve">audit log</text>
+<text x="121.6" y="260" fill="#dde4ee" xml:space="preserve"> ──────────────────────────────────────────────────────────────┤</text>
+<text x="16.0" y="282" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="282" fill="#dde4ee" opacity="0.55" xml:space="preserve">merkle root</text>
+<text x="130.4" y="282" fill="#dde4ee" xml:space="preserve"> </text>
+<text x="139.2" y="282" fill="#6ecfd9" xml:space="preserve">ab4d55a195e7b75578b1…</text>
+<text x="324.0" y="282" fill="#dde4ee" xml:space="preserve">                                        │</text>
+<text x="16.0" y="304" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="304" fill="#dde4ee" opacity="0.55" xml:space="preserve">leaf count</text>
+<text x="121.6" y="304" fill="#dde4ee" xml:space="preserve"> 8                                                             │</text>
+<text x="16.0" y="326" fill="#dde4ee" xml:space="preserve">├─ </text>
+<text x="42.4" y="326" fill="#dde4ee" opacity="0.55" xml:space="preserve">pre-commit (rekor)</text>
+<text x="200.8" y="326" fill="#dde4ee" xml:space="preserve"> ─────────────────────────────────────────────────────┤</text>
+<text x="16.0" y="348" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="348" fill="#dde4ee" opacity="0.55" xml:space="preserve">log index</text>
+<text x="112.8" y="348" fill="#dde4ee" xml:space="preserve"> 0                                                              │</text>
+<text x="16.0" y="370" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="370" fill="#dde4ee" opacity="0.55" xml:space="preserve">log id</text>
+<text x="86.4" y="370" fill="#dde4ee" xml:space="preserve"> fake-log-00000000000…                                             │</text>
+<text x="16.0" y="392" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="392" fill="#dde4ee" opacity="0.55" xml:space="preserve">signed at</text>
+<text x="112.8" y="392" fill="#dde4ee" xml:space="preserve"> 2026-01-01T00:00:00Z                                           │</text>
+<text x="16.0" y="414" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="414" fill="#dde4ee" opacity="0.55" xml:space="preserve">body hash</text>
+<text x="112.8" y="414" fill="#dde4ee" xml:space="preserve"> </text>
+<text x="121.6" y="414" fill="#6ecfd9" xml:space="preserve">8f3de138aa4e8db08953…</text>
+<text x="306.4" y="414" fill="#dde4ee" xml:space="preserve">                                          │</text>
+<text x="16.0" y="436" fill="#dde4ee" xml:space="preserve">├─ </text>
+<text x="42.4" y="436" fill="#dde4ee" opacity="0.55" xml:space="preserve">ots anchor</text>
+<text x="130.4" y="436" fill="#dde4ee" xml:space="preserve"> ─────────────────────────────────────────────────────────────┤</text>
+<text x="16.0" y="458" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="458" fill="#dde4ee" opacity="0.55" xml:space="preserve">status</text>
+<text x="86.4" y="458" fill="#dde4ee" xml:space="preserve"> </text>
+<text x="95.2" y="458" fill="#e8b14a" xml:space="preserve">pending</text>
+<text x="156.8" y="458" fill="#dde4ee" xml:space="preserve">                                                           │</text>
+<text x="16.0" y="480" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="480" fill="#dde4ee" opacity="0.55" xml:space="preserve">calendar</text>
+<text x="104.0" y="480" fill="#dde4ee" xml:space="preserve"> fake://ots                                                      │</text>
+<text x="16.0" y="502" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="502" fill="#dde4ee" opacity="0.55" xml:space="preserve">submitted</text>
+<text x="112.8" y="502" fill="#dde4ee" xml:space="preserve"> 2026-01-01T00:00:00Z                                           │</text>
+<text x="16.0" y="524" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="524" fill="#dde4ee" opacity="0.55" xml:space="preserve">digest</text>
+<text x="86.4" y="524" fill="#dde4ee" xml:space="preserve"> </text>
+<text x="95.2" y="524" fill="#6ecfd9" xml:space="preserve">ab4d55a195e7b75578b1…</text>
+<text x="280.0" y="524" fill="#dde4ee" xml:space="preserve">                                             │</text>
+<text x="16.0" y="546" fill="#dde4ee" xml:space="preserve">├─ </text>
+<text x="42.4" y="546" fill="#dde4ee" opacity="0.55" xml:space="preserve">deliverable binding</text>
+<text x="209.6" y="546" fill="#dde4ee" xml:space="preserve"> ────────────────────────────────────────────────────┤</text>
+<text x="16.0" y="568" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="568" fill="#dde4ee" opacity="0.55" xml:space="preserve">path</text>
+<text x="68.8" y="568" fill="#dde4ee" xml:space="preserve">   report.md                                                         │</text>
+<text x="16.0" y="590" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="590" fill="#dde4ee" opacity="0.55" xml:space="preserve">sha256</text>
+<text x="86.4" y="590" fill="#dde4ee" xml:space="preserve"> </text>
+<text x="95.2" y="590" fill="#6ecfd9" xml:space="preserve">24ca5d2ececd05aa35c1…</text>
+<text x="280.0" y="590" fill="#dde4ee" xml:space="preserve">                                             │</text>
+<text x="16.0" y="612" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="612" fill="#dde4ee" opacity="0.55" xml:space="preserve">citations</text>
+<text x="112.8" y="612" fill="#dde4ee" xml:space="preserve"> 5                                                              │</text>
+<text x="16.0" y="634" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="634" fill="#dde4ee" opacity="0.55" xml:space="preserve">bare claims</text>
+<text x="130.4" y="634" fill="#dde4ee" xml:space="preserve"> 3  </text>
+<text x="165.6" y="634" fill="#dde4ee" opacity="0.55" xml:space="preserve">(policy: warn)</text>
+<text x="288.8" y="634" fill="#dde4ee" xml:space="preserve">                                            │</text>
+<text x="16.0" y="656" fill="#dde4ee" xml:space="preserve">├─ </text>
+<text x="42.4" y="656" fill="#dde4ee" opacity="0.55" xml:space="preserve">signatures</text>
+<text x="130.4" y="656" fill="#dde4ee" xml:space="preserve"> ─────────────────────────────────────────────────────────────┤</text>
+<text x="16.0" y="678" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="678" fill="#dde4ee" opacity="0.55" xml:space="preserve">sig 1</text>
+<text x="77.6" y="678" fill="#dde4ee" xml:space="preserve">  keyid </text>
+<text x="148.0" y="678" fill="#6ecfd9" xml:space="preserve">6c87d81105a73e81bdce…</text>
+<text x="332.8" y="678" fill="#dde4ee" xml:space="preserve">                                       │</text>
+<text x="16.0" y="700" fill="#dde4ee" xml:space="preserve">╰──────────────────────────────────────────────────────────────────────────╯</text>
+<text x="16.0" y="744" fill="#dde4ee" opacity="0.55" xml:space="preserve">  verify cryptographically:  jesses verify </text>
+<text x="394.4" y="744" fill="#dde4ee" xml:space="preserve">session.jes</text>
+</svg>

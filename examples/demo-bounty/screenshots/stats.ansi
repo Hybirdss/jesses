@@ -1,0 +1,24 @@
+session [2m777c0ea1d813310c6d0406cf2fc54512[0m
+
+  decisions   [32m██████████████[0m[33m[0m[1m[31m██████████[0m[2m████[0m [2m8 total[0m
+              [32mallow 4[0m [33mwarn 0[0m [1m[31mdeny 3[0m [2mcommit 1[0m
+
+  tools
+    bash         [36m████████████[0m [2m5[0m
+    jesses.precommit [36m██░░░░░░░░░░[0m [2m1[0m
+    webfetch     [36m██░░░░░░░░░░[0m [2m1[0m
+    write        [36m██░░░░░░░░░░[0m [2m1[0m
+
+  top hosts
+    [1m[31mapi.target.com[0m              [36m████████[0m [2m2[0m[1m[31m ← deny[0m
+    [1m[31madmin.target.com[0m            [36m████░░░░[0m [2m1[0m[1m[31m ← deny[0m
+    [1m[31mattacker-c2.example[0m         [36m████░░░░[0m [2m1[0m[1m[31m ← deny[0m
+    developer.target.com                     [36m████░░░░[0m [2m1[0m
+    docs.target.com                          [36m████░░░░[0m [2m1[0m
+    [1m[31mexfil.attacker.example[0m      [36m████░░░░[0m [2m1[0m[1m[31m ← deny[0m
+
+  unique hosts 6  unique paths 1
+
+  verdict     [1m[31m✗ INVALID[0m  [2m(3 policy breaches)[0m
+              [2mrun `jesses verify` for the gate report[0m
+

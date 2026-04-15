@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 824 406" width="824" height="406" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="14">
+<rect width="824" height="406" rx="8" fill="#0b0d10"/>
+<g transform="translate(16 14)">
+<circle cx="0" cy="6" r="6" fill="#ff6058"/>
+<circle cx="18" cy="6" r="6" fill="#ffbd2e"/>
+<circle cx="36" cy="6" r="6" fill="#27c93f"/>
+<text x="180.00000000000006" y="10" fill="#8895a6" font-size="12">jesses verify --offline --report report.md session.jes</text>
+</g>
+<text x="16.0" y="62" fill="#dde4ee" xml:space="preserve">╭── jesses verify   </text>
+<text x="192.0" y="62" fill="#dde4ee" opacity="0.55" xml:space="preserve">session 777c0ea1d813310c…</text>
+<text x="412.0" y="62" fill="#dde4ee" xml:space="preserve"> ─────────────────────────────╮</text>
+<text x="16.0" y="84" fill="#dde4ee" xml:space="preserve">│                                                                          │</text>
+<text x="16.0" y="106" fill="#dde4ee" xml:space="preserve">│               </text>
+<text x="156.8" y="106" fill="#e55c5c" font-weight="bold" xml:space="preserve">✗  INVALID</text>
+<text x="244.8" y="106" fill="#dde4ee" xml:space="preserve">                                                 │</text>
+<text x="16.0" y="128" fill="#dde4ee" xml:space="preserve">│                  </text>
+<text x="183.2" y="128" fill="#dde4ee" opacity="0.55" xml:space="preserve">5 of 7 gates pass · 1 or more mandatory gates failed</text>
+<text x="640.8" y="128" fill="#dde4ee" xml:space="preserve">    │</text>
+<text x="16.0" y="150" fill="#dde4ee" xml:space="preserve">│                                                                          │</text>
+<text x="16.0" y="172" fill="#dde4ee" xml:space="preserve">├─ </text>
+<text x="42.4" y="172" fill="#dde4ee" opacity="0.55" xml:space="preserve">mandatory</text>
+<text x="121.6" y="172" fill="#dde4ee" xml:space="preserve"> ──────────────────────────────────────────────────────────────┤</text>
+<text x="16.0" y="194" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="194" fill="#5fd37a" xml:space="preserve">✓</text>
+<text x="42.4" y="194" fill="#dde4ee" xml:space="preserve"> </text>
+<text x="51.2" y="194" fill="#dde4ee" opacity="0.55" xml:space="preserve">G1</text>
+<text x="68.8" y="194" fill="#dde4ee" xml:space="preserve">  envelope signature         </text>
+<text x="324.0" y="194" fill="#dde4ee" opacity="0.55" xml:space="preserve">ed25519 signature valid</text>
+<text x="526.4" y="194" fill="#dde4ee" xml:space="preserve">                 │</text>
+<text x="16.0" y="216" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="216" fill="#5fd37a" xml:space="preserve">✓</text>
+<text x="42.4" y="216" fill="#dde4ee" xml:space="preserve"> </text>
+<text x="51.2" y="216" fill="#dde4ee" opacity="0.55" xml:space="preserve">G2</text>
+<text x="68.8" y="216" fill="#dde4ee" xml:space="preserve">  merkle root                </text>
+<text x="324.0" y="216" fill="#dde4ee" opacity="0.55" xml:space="preserve">8 leaves, root ab4d55a195e7b755…</text>
+<text x="605.6" y="216" fill="#dde4ee" xml:space="preserve">        │</text>
+<text x="16.0" y="238" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="238" fill="#5fd37a" xml:space="preserve">✓</text>
+<text x="42.4" y="238" fill="#dde4ee" xml:space="preserve"> </text>
+<text x="51.2" y="238" fill="#dde4ee" opacity="0.55" xml:space="preserve">G3</text>
+<text x="68.8" y="238" fill="#dde4ee" xml:space="preserve">  rekor pre-commit           </text>
+<text x="324.0" y="238" fill="#dde4ee" opacity="0.55" xml:space="preserve">local hash match (log index 0, rekor n… │</text>
+<text x="16.0" y="260" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="260" fill="#5fd37a" xml:space="preserve">✓</text>
+<text x="42.4" y="260" fill="#dde4ee" xml:space="preserve"> </text>
+<text x="51.2" y="260" fill="#dde4ee" opacity="0.55" xml:space="preserve">G4</text>
+<text x="68.8" y="260" fill="#dde4ee" xml:space="preserve">  scope hash                 </text>
+<text x="324.0" y="260" fill="#dde4ee" opacity="0.55" xml:space="preserve">scope.txt matches committed hash</text>
+<text x="605.6" y="260" fill="#dde4ee" xml:space="preserve">        │</text>
+<text x="16.0" y="282" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="282" fill="#e55c5c" font-weight="bold" xml:space="preserve">✗</text>
+<text x="42.4" y="282" fill="#dde4ee" xml:space="preserve"> </text>
+<text x="51.2" y="282" fill="#dde4ee" opacity="0.55" xml:space="preserve">G5</text>
+<text x="68.8" y="282" fill="#dde4ee" xml:space="preserve">  policy compliance          </text>
+<text x="324.0" y="282" fill="#dde4ee" opacity="0.55" xml:space="preserve">3 of 8 events breached policy</text>
+<text x="579.2" y="282" fill="#dde4ee" xml:space="preserve">           │</text>
+<text x="16.0" y="304" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="304" fill="#5fd37a" xml:space="preserve">✓</text>
+<text x="42.4" y="304" fill="#dde4ee" xml:space="preserve"> </text>
+<text x="51.2" y="304" fill="#dde4ee" opacity="0.55" xml:space="preserve">G7</text>
+<text x="68.8" y="304" fill="#dde4ee" xml:space="preserve">  deliverable provenance     </text>
+<text x="324.0" y="304" fill="#dde4ee" opacity="0.55" xml:space="preserve">5/5 citations valid, 3 bare claims (po… │</text>
+<text x="16.0" y="326" fill="#dde4ee" xml:space="preserve">├─ </text>
+<text x="42.4" y="326" fill="#dde4ee" opacity="0.55" xml:space="preserve">advisory</text>
+<text x="112.8" y="326" fill="#dde4ee" xml:space="preserve"> ───────────────────────────────────────────────────────────────┤</text>
+<text x="16.0" y="348" fill="#dde4ee" xml:space="preserve">│ </text>
+<text x="33.6" y="348" fill="#e8b14a" xml:space="preserve">⚠</text>
+<text x="42.4" y="348" fill="#dde4ee" xml:space="preserve"> </text>
+<text x="51.2" y="348" fill="#dde4ee" opacity="0.55" xml:space="preserve">G6</text>
+<text x="68.8" y="348" fill="#dde4ee" xml:space="preserve">  opentimestamps anchor      </text>
+<text x="324.0" y="348" fill="#dde4ee" opacity="0.55" xml:space="preserve">pending bitcoin confirmation — submitt… │</text>
+<text x="16.0" y="370" fill="#dde4ee" xml:space="preserve">╰──────────────────────────────────────────────────────────────────────────╯</text>
+</svg>
