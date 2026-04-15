@@ -16,11 +16,11 @@ import (
 
 	"github.com/Hybirdss/jesses/internal/attest"
 	"github.com/Hybirdss/jesses/internal/audit"
-	"github.com/Hybirdss/jesses/internal/extractors/bash"
+	"github.com/Hybirdss/jesses/internal/extractors/dispatch"
+	"github.com/Hybirdss/jesses/internal/ots"
 	"github.com/Hybirdss/jesses/internal/policy"
 	"github.com/Hybirdss/jesses/internal/rekor"
 	"github.com/Hybirdss/jesses/internal/session"
-	"github.com/Hybirdss/jesses/internal/shellparse"
 )
 
 // runHook implements `jesses hook`. Reads tool-use events as line-
@@ -47,7 +47,8 @@ func runHook(args []string) int {
 	sessionDir := fs.String("session-dir", ".", "directory that holds session.log, scope.txt, session.jes")
 	keyPath := fs.String("key", "", "path to ed25519 private key (generated if missing)")
 	rekorURL := fs.String("rekor", "https://rekor.sigstore.dev", "Rekor server URL")
-	fake := fs.Bool("fake-rekor", false, "use in-memory FakeClient (testing only)")
+	otsCalendar := fs.String("ots", "", "OTS calendar URL (empty = skip OTS anchoring)")
+	fake := fs.Bool("fake-rekor", false, "use in-memory FakeClient (testing only; also enables fake OTS)")
 	if err := fs.Parse(args); err != nil {
 		return 2
 	}
@@ -74,10 +75,15 @@ func runHook(args []string) int {
 	}
 
 	var rc rekor.Client
+	var oc ots.Client
 	if *fake {
 		rc = rekor.NewFakeClient()
+		oc = ots.NewFakeClient()
 	} else {
 		rc = rekor.NewHTTPClient(*rekorURL)
+		if *otsCalendar != "" {
+			oc = ots.NewHTTPClient(*otsCalendar)
+		}
 	}
 
 	ctx := context.Background()
@@ -86,6 +92,7 @@ func runHook(args []string) int {
 		ScopeBytes: scopeBytes,
 		PrivateKey: priv,
 		Rekor:      rc,
+		OTS:        oc,
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "hook: open session: %v\n", err)
@@ -121,7 +128,7 @@ func runHook(args []string) int {
 		})
 	}
 
-	fin, err := sess.Close()
+	fin, err := sess.Close(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "hook: close: %v\n", err)
 		return 1
@@ -140,8 +147,11 @@ func runHook(args []string) int {
 	return 0
 }
 
-// hookBuildEvent turns a raw tool-use JSON into an audit.Event
-// with destinations extracted and a policy decision applied.
+// hookBuildEvent turns a raw tool-use JSON into an audit.Event with
+// destinations extracted (via the dispatch package) and a policy
+// decision applied. Any destination blocked by scope causes an
+// immediate deny; any warn-eligible destination leaves the event
+// marked "warn" but does not short-circuit.
 func hookBuildEvent(raw map[string]any, pol *policy.Policy) audit.Event {
 	tool, _ := raw["tool"].(string)
 	input, _ := raw["input"].(map[string]any)
@@ -153,38 +163,27 @@ func hookBuildEvent(raw map[string]any, pol *policy.Policy) audit.Event {
 		Tool:      tool,
 		InputHash: ih,
 		Input:     input,
-		PolicyRef: "",
 	}
 
-	var dests []string
-	switch strings.ToLower(tool) {
-	case "bash":
-		cmd, _ := input["command"].(string)
-		toks, err := shellparse.SplitString(cmd)
-		if err != nil {
-			ev.Decision = "deny"
-			ev.Reason = "parse error: " + err.Error()
-			return ev
-		}
-		for _, d := range bash.ExtractAll(toks) {
-			dests = append(dests, d.Host)
-		}
-	case "webfetch", "websearch":
-		if u, ok := input["url"].(string); ok {
-			dests = append(dests, u)
-		}
-	case "read", "write", "edit", "glob", "grep":
-		if p, ok := input["path"].(string); ok {
-			dests = append(dests, "path:"+p)
-		}
+	dsts, err := dispatch.Extract(raw)
+	if err != nil {
+		ev.Decision = "deny"
+		ev.Reason = "extractor error: " + err.Error()
+		return ev
 	}
-	ev.Destinations = dests
 
-	// Apply policy: if any destination is blocked, deny.
+	// Fan destinations into the audit record.
+	var destStrs []string
+	for _, d := range dsts {
+		destStrs = append(destStrs, destinationIdentifier(d.Kind, d.Host, d.Path))
+	}
+	ev.Destinations = destStrs
+
+	// Apply policy: first blocking destination fails the whole event.
 	ev.Decision = "allow"
 	ev.Reason = "in scope"
-	for _, d := range dests {
-		ns, val := classifyDest(d)
+	for _, d := range dsts {
+		ns, val := classifyKindHost(d.Kind, d.Host, d.Path)
 		dec := pol.Evaluate(ns, val)
 		switch dec.Verdict {
 		case policy.VerdictBlock:
@@ -197,6 +196,35 @@ func hookBuildEvent(raw map[string]any, pol *policy.Policy) audit.Event {
 		}
 	}
 	return ev
+}
+
+// destinationIdentifier composes a string the policy layer can read.
+// Path-namespace destinations keep the "path:" prefix; mcp keep the
+// mcp: prefix they already carry; hosts go as-is.
+func destinationIdentifier(kind, host, path string) string {
+	switch {
+	case strings.HasPrefix(kind, "path:"):
+		return "path:" + path
+	case kind == "mcp":
+		return host
+	default:
+		if host != "" {
+			return host
+		}
+		return path
+	}
+}
+
+// classifyKindHost maps an extractors.Destination to a policy
+// namespace + value for evaluation.
+func classifyKindHost(kind, host, path string) (policy.Namespace, string) {
+	switch {
+	case strings.HasPrefix(kind, "path:"):
+		return policy.NSPath, path
+	case kind == "mcp":
+		return policy.NSMCP, host
+	}
+	return classifyDest(host)
 }
 
 // classifyDest inspects a destination string and returns the policy

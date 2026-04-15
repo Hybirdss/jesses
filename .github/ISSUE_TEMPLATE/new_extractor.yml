@@ -1,0 +1,79 @@
+name: New tool extractor
+description: Propose a new tool-specific destination extractor for the hook dispatcher.
+title: "extractor: <tool name>"
+labels: ["extractor", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Extractors turn tool invocations into structured `Event` records with extracted destinations. The current inventory is in SPEC.md §5.
+
+        Before filing, check whether the tool you want coverage for can be handled by the generic Bash extractor operating on its command-line invocation. If it can, no new extractor is needed — an enhancement to the shell parser is the right path instead.
+
+  - type: input
+    id: tool_name
+    attributes:
+      label: Tool name
+      description: The CLI tool, SDK, or MCP server whose invocations you want extracted.
+      placeholder: "kubectl / go-github client / mcp:github"
+    validations:
+      required: true
+
+  - type: input
+    id: invocation_channel
+    attributes:
+      label: Invocation channel
+      description: How does this tool get invoked from inside an agent harness? Bash subprocess, MCP call, direct library import, HTTP request.
+      placeholder: "Claude Code Bash tool via Taskfile target"
+    validations:
+      required: true
+
+  - type: textarea
+    id: destinations
+    attributes:
+      label: Destinations the extractor must surface
+      description: What outbound targets does the tool reach? Give concrete examples of invocation strings and the hosts / paths / repos / contracts / MCPs they resolve to.
+      placeholder: |
+        Example:
+          kubectl --context=prod get pods  → host: kubernetes-api.prod.internal
+          kubectl apply -f manifest.yaml   → host from current-context; file read locally
+    validations:
+      required: true
+
+  - type: textarea
+    id: edge_cases
+    attributes:
+      label: Known edge cases
+      description: Proxy overrides, config file indirection, environment-variable destinations, shell-level wrappers, subcommand variation. List the traps a naive extractor would fall into.
+    validations:
+      required: false
+
+  - type: textarea
+    id: existing_parsers
+    attributes:
+      label: Existing parsers or fixtures you can share
+      description: If you have a parser or captured invocation corpus, link it. Reuse beats reinvention.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: willingness
+    attributes:
+      label: Contribution willingness
+      description: Who will write the extractor?
+      options:
+        - I will write it if the project accepts the proposal
+        - I am requesting it; someone else would need to implement
+        - I have partial code and need feedback on approach
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Filer's acknowledgements
+      options:
+        - label: The tool is in-scope — its invocations reach destinations a scope policy would regulate (not purely local file operations)
+          required: true
+        - label: An extractor is the right solution — the generic Bash extractor cannot already handle this tool
+          required: true

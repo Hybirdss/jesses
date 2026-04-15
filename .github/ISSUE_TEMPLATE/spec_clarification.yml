@@ -1,0 +1,69 @@
+name: Spec clarification
+description: Identify ambiguity, contradiction, or under-specification in SPEC.md or spec/v0.1/.
+title: "spec: <short summary>"
+labels: ["spec", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The specification is the project's contract. Clarifications are high-priority: they prevent future implementations from diverging.
+
+        Please cite the exact location in the spec you are asking about. Vague clarification requests are closed because they cannot produce a decision.
+
+  - type: input
+    id: spec_location
+    attributes:
+      label: Spec location
+      description: File + section + line range, as of the current main. E.g. `SPEC.md §5.3 lines 210-225` or `spec/v0.1/predicate.schema.json`.
+      placeholder: "SPEC.md §5.3"
+    validations:
+      required: true
+
+  - type: textarea
+    id: ambiguity
+    attributes:
+      label: The ambiguity or contradiction
+      description: Quote the relevant passage and state the two or more valid readings, or the contradiction between passages.
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation_impact
+    attributes:
+      label: Impact on implementations
+      description: How does this ambiguity affect an implementer writing a conforming verifier? What would two implementers produce that disagree?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_resolution
+    attributes:
+      label: Proposed resolution
+      description: Suggest specific spec wording or an ADR proposal. If unsure, say so and list options.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: impact_class
+    attributes:
+      label: Spec-change class
+      description: How much would the proposed resolution change existing behavior?
+      options:
+        - Editorial only (wording change, no behavior change)
+        - Clarifying (resolves the ambiguity without requiring verifier code changes)
+        - Refining (resolves toward one reading; conforming verifiers already chose that reading)
+        - Breaking (requires predicate URI bump and test-vector migration)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Filer's acknowledgements
+      options:
+        - label: I have read the full section of SPEC.md this relates to
+          required: true
+        - label: I have checked docs/adr/ for existing decisions on this topic
+          required: true
+        - label: If breaking, I understand this triggers a full spec version review and may be deferred to v0.2
+          required: true

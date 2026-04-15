@@ -65,7 +65,7 @@ func TestEndToEndHappyPath(t *testing.T) {
 		}
 	}
 
-	fin, err := sess.Close()
+	fin, err := sess.Close(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,7 +122,7 @@ func TestTamperedLogFailsG2(t *testing.T) {
 		t.Fatal(err)
 	}
 	_ = sess.Append(audit.Event{TS: "2026", Tool: "bash", InputHash: "h", Decision: "allow"})
-	fin, _ := sess.Close()
+	fin, _ := sess.Close(ctx)
 	env, _ := attest.Build(fin)
 	_ = attest.WriteFile(envPath, env)
 
@@ -181,7 +181,7 @@ func TestPolicyBreachFailsG5(t *testing.T) {
 	_ = sess.Append(audit.Event{TS: "2026", Tool: "bash", InputHash: "h",
 		Destinations: []string{"attacker.com"}, Decision: "deny",
 		Reason: "not in scope"})
-	fin, _ := sess.Close()
+	fin, _ := sess.Close(ctx)
 	env, _ := attest.Build(fin)
 	_ = attest.WriteFile(envPath, env)
 
@@ -209,7 +209,7 @@ func TestEnvelopeRoundTrip(t *testing.T) {
 		PrivateKey: priv, Rekor: fake,
 	})
 	_ = sess.Append(audit.Event{TS: "2026", Tool: "bash", InputHash: "h", Decision: "allow"})
-	fin, _ := sess.Close()
+	fin, _ := sess.Close(ctx)
 	env, _ := attest.Build(fin)
 	_ = attest.WriteFile(envPath, env)
 

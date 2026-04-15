@@ -30,6 +30,7 @@ import (
 
 	"github.com/Hybirdss/jesses/internal/audit"
 	"github.com/Hybirdss/jesses/internal/merkle"
+	"github.com/Hybirdss/jesses/internal/ots"
 	"github.com/Hybirdss/jesses/internal/precommit"
 	"github.com/Hybirdss/jesses/internal/rekor"
 )
@@ -45,6 +46,7 @@ type Session struct {
 	writer    *audit.Writer
 	leafs     []merkle.Hash
 	precommit precommit.Receipt
+	ots       ots.Client
 	seq       uint64
 	closed    bool
 }
@@ -70,6 +72,13 @@ type Config struct {
 	// rekor.NewHTTPClient("https://rekor.sigstore.dev"); tests pass
 	// rekor.NewFakeClient().
 	Rekor rekor.Client
+
+	// OTS is the OpenTimestamps client. Optional at v0.1 — a nil OTS
+	// client means the session skips Bitcoin anchoring and the final
+	// envelope's OTS field stays empty. When present, session.Close
+	// submits the Merkle root digest and embeds the pending receipt
+	// in the returned Finalized.
+	OTS ots.Client
 
 	// Now returns the current time. Tests override this for
 	// deterministic timestamps in golden envelopes.
@@ -128,6 +137,7 @@ func Open(ctx context.Context, cfg Config) (*Session, error) {
 		privKey:   cfg.PrivateKey,
 		writer:    writer,
 		precommit: receipt,
+		ots:       cfg.OTS,
 	}
 
 	// Event 0 records the pre-commitment itself so the verifier can
@@ -175,12 +185,15 @@ func (s *Session) appendRaw(ev audit.Event) error {
 	return nil
 }
 
-// Close finalizes the session. No further Append is allowed. The
-// returned data is everything the attest layer needs to build the
-// ITE-6 envelope; Close itself does not produce the envelope so that
-// cmd/jesses can control the envelope shape (embed extra metadata,
-// etc.) without reaching into the session.
-func (s *Session) Close() (Finalized, error) {
+// Close finalizes the session. No further Append is allowed.
+//
+// When an OTS client is configured, Close submits the final Merkle
+// root digest to the OpenTimestamps calendar and embeds the pending
+// receipt in the returned Finalized. OTS failures are non-fatal at
+// v0.1 (Rekor carries the mandatory pre-commit; OTS is
+// complementary) — the Finalized still comes back with an empty
+// OTSReceipt and the caller can log the error.
+func (s *Session) Close(ctx context.Context) (Finalized, error) {
 	if s.closed {
 		return Finalized{}, errors.New("session: already closed")
 	}
@@ -189,7 +202,8 @@ func (s *Session) Close() (Finalized, error) {
 		return Finalized{}, err
 	}
 	root := merkle.RootFromLeafHashes(s.leafs)
-	return Finalized{
+
+	fin := Finalized{
 		SessionID:  s.ID,
 		StartedAt:  s.StartedAt,
 		EndedAt:    time.Now().UTC(),
@@ -199,7 +213,17 @@ func (s *Session) Close() (Finalized, error) {
 		MerkleRoot: hex.EncodeToString(root[:]),
 		LeafCount:  len(s.leafs),
 		Precommit:  s.precommit,
-	}, nil
+	}
+
+	if s.ots != nil {
+		receipt, err := s.ots.Submit(ctx, root[:])
+		if err != nil {
+			fin.OTSError = err.Error()
+		} else {
+			fin.OTSReceipt = receipt
+		}
+	}
+	return fin, nil
 }
 
 // Finalized is the immutable bundle produced by Close. cmd/jesses
@@ -214,6 +238,12 @@ type Finalized struct {
 	MerkleRoot string
 	LeafCount  int
 	Precommit  precommit.Receipt
+
+	// OTSReceipt is populated when an OTS client was configured on
+	// the session. Empty when OTS was not configured or when the
+	// calendar submission failed (OTSError explains why).
+	OTSReceipt ots.Receipt
+	OTSError   string
 }
 
 // randomSessionID returns a 16-byte random ID in lowercase hex. It

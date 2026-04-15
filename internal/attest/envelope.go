@@ -30,6 +30,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/Hybirdss/jesses/internal/ots"
 	"github.com/Hybirdss/jesses/internal/precommit"
 	"github.com/Hybirdss/jesses/internal/session"
 )
@@ -121,10 +122,16 @@ type Predicate struct {
 	// claims.
 	LeafCount int `json:"leaf_count"`
 
-	// OTSAnchor is the OpenTimestamps proof bytes (base64). Empty
-	// until the Bitcoin anchor confirms; verifiers should treat its
-	// absence as "pending" rather than failure at v0.1.
-	OTSAnchor string `json:"ots_anchor,omitempty"`
+	// OTSReceipt is the OpenTimestamps calendar receipt. Empty when
+	// no OTS client was configured; carries status="pending" until
+	// the Bitcoin anchor confirms. Verifier gate G6 is advisory
+	// for pending receipts at v0.1.
+	OTSReceipt ots.Receipt `json:"ots_receipt,omitempty"`
+
+	// OTSError records why OTS anchoring failed if it was attempted
+	// but errored. Verifier-facing explanation; not security-critical
+	// at v0.1.
+	OTSError string `json:"ots_error,omitempty"`
 }
 
 // SchemaVersion is the current jesses predicate schema version.
@@ -150,6 +157,8 @@ func Build(f session.Finalized) (Envelope, error) {
 			Precommit:     f.Precommit,
 			MerkleRoot:    f.MerkleRoot,
 			LeafCount:     f.LeafCount,
+			OTSReceipt:    f.OTSReceipt,
+			OTSError:      f.OTSError,
 		},
 	}
 	body, err := json.Marshal(stmt)

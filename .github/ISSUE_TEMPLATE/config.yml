@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/Hybirdss/jesses/security/advisories/new
+    about: Do not file security issues publicly. Open a private Security Advisory instead. See SECURITY.md for the scope and response commitments.
+  - name: Questions and discussion
+    url: https://github.com/Hybirdss/jesses/discussions
+    about: For open-ended questions, design discussion, spec clarification thinking-out-loud, or integration questions. Open a Discussion rather than an Issue.
+  - name: Specification document
+    url: https://github.com/Hybirdss/jesses/blob/main/SPEC.md
+    about: Before filing, check whether SPEC.md already answers your question. The spec is the contract; issues that restate the spec verbatim are closed.
+  - name: Threat model
+    url: https://github.com/Hybirdss/jesses/blob/main/THREAT_MODEL.md
+    about: The seven attacks listed there are the ones we have already considered. Please read before proposing a new hardening.

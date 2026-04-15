@@ -96,16 +96,42 @@ a { color: var(--link); }
 
 <script>
 (async function () {
-  const [envResp, verifyResp, eventsResp] = await Promise.all([
-    fetch("/api/envelope").then(r => r.json()),
-    fetch("/api/verify").then(r => r.json()),
-    fetch("/api/events").then(r => r.json()),
-  ]);
-
-  renderSession(envResp.statement.predicate);
-  renderVerify(verifyResp);
-  renderTimeline(eventsResp || []);
+  await refresh();
+  const envResp = await fetch("/api/envelope").then(r => r.json());
+  if (envResp.follow) {
+    // Live mode: poll events + verify every 2s until the page closes.
+    // This is how a triage analyst watches a session that is still
+    // active in another terminal.
+    const banner = document.createElement("div");
+    banner.className = "meta";
+    banner.style.cssText = "margin: 4px 0 12px; color: var(--warn);";
+    banner.textContent = "● live — polling every 2s";
+    document.body.insertBefore(banner, document.getElementById("session"));
+    setInterval(refresh, 2000);
+  }
 })();
+
+async function refresh() {
+  try {
+    const [envResp, verifyResp, eventsResp] = await Promise.all([
+      fetch("/api/envelope").then(r => r.json()),
+      fetch("/api/verify").then(r => r.json()).catch(() => null),
+      fetch("/api/events").then(r => r.json()),
+    ]);
+    if (envResp.statement && envResp.statement.predicate) {
+      renderSession(envResp.statement.predicate);
+    } else {
+      document.getElementById("session").innerHTML =
+        `<span class="meta">envelope not written yet — session still active</span>`;
+    }
+    if (verifyResp) renderVerify(verifyResp);
+    else document.getElementById("verify").innerHTML =
+      `<span class="meta">verification unavailable (no envelope yet)</span>`;
+    renderTimeline(eventsResp || []);
+  } catch (e) {
+    console.warn("refresh failed", e);
+  }
+}
 
 function renderSession(p) {
   const el = document.getElementById("session");

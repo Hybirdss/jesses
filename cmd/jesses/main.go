@@ -39,6 +39,8 @@ func main() {
 		os.Exit(runRun(os.Args[2:]))
 	case "hook":
 		os.Exit(runHook(os.Args[2:]))
+	case "stats":
+		os.Exit(runStats(os.Args[2:]))
 	case "init-scope":
 		os.Exit(runInitScope(os.Args[2:]))
 	case "version", "--version", "-v":
@@ -64,6 +66,7 @@ Subcommands:
   view       render a .jes timeline in a local browser (60s TTL)
   run        wrap one shell command and emit a .jes attestation
   hook       stdin-driven hook mode for agent harnesses
+  stats      one-screen session hygiene dashboard
   init-scope scaffold a scope.txt in the current directory
   version    print version string
 

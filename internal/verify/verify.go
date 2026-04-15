@@ -187,11 +187,18 @@ func Verify(ctx context.Context, opts Options) (Report, error) {
 
 	// ---- G6: OTS anchor (advisory at v0.1) ----
 	g = Gate{Name: "G6", Title: "opentimestamps anchor", Severity: "advisory"}
-	if pred.OTSAnchor == "" {
-		g.Detail = "pending bitcoin confirmation (typical 10-60 minutes)"
-	} else {
+	switch {
+	case pred.OTSError != "":
+		g.Detail = "anchor submission failed: " + pred.OTSError
+	case pred.OTSReceipt.CalendarURL == "":
+		g.Detail = "no OTS client configured (rekor provides mandatory pre-commit)"
+	case pred.OTSReceipt.Status == "pending":
+		g.Detail = "pending bitcoin confirmation — submitted to " + pred.OTSReceipt.CalendarURL
+	case pred.OTSReceipt.Status == "confirmed":
 		g.Pass = true
-		g.Detail = "anchor present (bytes attached)"
+		g.Detail = "anchored in bitcoin via " + pred.OTSReceipt.CalendarURL
+	default:
+		g.Detail = "unknown status: " + pred.OTSReceipt.Status
 	}
 	rpt.Gates = append(rpt.Gates, g)
 

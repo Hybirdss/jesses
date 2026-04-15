@@ -1,5 +1,11 @@
 # jesses
 
+[![CI](https://github.com/Hybirdss/jesses/actions/workflows/ci.yml/badge.svg)](https://github.com/Hybirdss/jesses/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/Hybirdss/jesses/actions/workflows/codeql.yml/badge.svg)](https://github.com/Hybirdss/jesses/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Hybirdss/jesses/badge)](https://scorecard.dev/viewer/?uri=github.com/Hybirdss/jesses)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Go Reference](https://pkg.go.dev/badge/github.com/Hybirdss/jesses.svg)](https://pkg.go.dev/github.com/Hybirdss/jesses)
+
 > _"In 13th-century English common law, a hawk without jesses was legally vermin — no proof of training meant no proof of responsible ownership. In 2026, an LLM agent without jesses is the same under EU AI Act Article 12."_
 
 Cryptographic attestation standard for security deliverables produced by autonomous LLM agents.
@@ -25,6 +31,10 @@ v0.1 ship target: a Go binary that installs a PreToolUse hook into Claude Code, 
 | [`SPEC.md`](./SPEC.md) | v0.1 standard — predicate URI, envelope, event schema, 6 verify gates |
 | [`spec/v0.1/`](./spec/v0.1/) | language-independent JSON schema + test vectors (other-language verifiers must pass these) |
 | [`SECURITY.md`](./SECURITY.md) | disclosure policy |
+| [`GOVERNANCE.md`](./GOVERNANCE.md) | decision authority, Commonhaus transition plan, sustainability |
+| [`CONTRIBUTING.md`](./CONTRIBUTING.md) | DCO, bit-exact invariants, PR workflow |
+| [`TRADEMARK.md`](./TRADEMARK.md) | word-mark policy and permitted uses |
+| [`docs/adr/`](./docs/adr/) | Architecture Decision Records (MADR 3.0) — 10 foundational decisions |
 
 ---
 
@@ -50,16 +60,22 @@ Everything else (policy libraries, verifiers in other languages, transparency-lo
 
 ## Governance (pre-commit)
 
-`jesses` is committed to being a **primitive**, not a product. This commitment is pre-launch and irrevocable:
+`jesses` is committed to being a **primitive**, not a product. This commitment is pre-launch and operational:
 
-- The primitive (hook, attestation format, verifier, spec) will never be monetized. MIT forever.
-- The format, the verifier semantics, and the test vectors are owned by a neutral foundation — the **jesses Foundation** — to be established before v1.0. No single maintainer or company can steer the standard unilaterally.
+- The primitive (hook, attestation format, verifier, spec) is MIT-licensed in perpetuity. MIT is structurally irrevocable; this statement is a reminder, not a contractual add-on.
+- The format, the verifier semantics, and the test vectors will be held by a neutral fiscal and governance sponsor — the [Commonhaus Foundation](https://www.commonhaus.org/) — by v0.2. Commonhaus is a purpose-built home for established open-source projects that need neutral IP and trademark stewardship without Apache-scale process weight or CNCF's multi-organization-maintainer requirements. Pi4J (February 2026), Quarkus, and Micronaut are precedents. See [ADR 0010](./docs/adr/0010-commonhaus-over-self-foundation.md).
 - Enterprise services _on top of_ the primitive (hosted verification, compliance dashboards, managed transparency logs) may be monetized by any party. The primitive itself is not.
 - The maintainer will decline any acquisition or re-license offer that would change this stance.
 
 This commitment exists because the dominant failure mode for a new primitive is the owner deciding to monetize it later, then losing community trust when the reference hub stops being neutral. `jesses` will not be that primitive.
 
-See [`ROADMAP.md`](./ROADMAP.md) for the full 90-day plan and governance timeline.
+See [`GOVERNANCE.md`](./GOVERNANCE.md) for decision authority, the Commonhaus transition timeline, and sustainability commitments. See [`ROADMAP.md`](./ROADMAP.md) for the full 90-day plan. See [`TRADEMARK.md`](./TRADEMARK.md) for the word-mark policy that complements the MIT copyright grant.
+
+## Contributing
+
+Read [`CONTRIBUTING.md`](./CONTRIBUTING.md) before opening a PR. Every commit must carry `Signed-off-by:` per the [DCO](https://developercertificate.org/); a CLA is not used. The project follows the [Contributor Covenant 2.1](./CODE_OF_CONDUCT.md).
+
+If you are filing a security report, open a private GitHub Security Advisory instead of a public issue — see [`SECURITY.md`](./SECURITY.md).
 
 ## License
 

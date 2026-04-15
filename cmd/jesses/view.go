@@ -38,33 +38,44 @@ var viewerHTML []byte
 func runView(args []string) int {
 	fs := flag.NewFlagSet("view", flag.ContinueOnError)
 	ttl := fs.Duration("ttl", 60*time.Second, "how long the server stays up")
+	follow := fs.Bool("follow", false, "live mode: re-read log on every request (use while session is still active)")
 	if err := fs.Parse(args); err != nil {
 		return 2
 	}
 	if fs.NArg() < 1 {
-		fmt.Fprintln(os.Stderr, "jesses view: missing envelope path")
+		fmt.Fprintln(os.Stderr, "jesses view: missing envelope or log path")
 		return 2
 	}
 	envPath := fs.Arg(0)
 
-	env, err := attest.ReadFile(envPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "view: %v\n", err)
-		return 1
-	}
-	stmt, _, err := attest.Parse(env)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "view: parse: %v\n", err)
+	var (
+		env  attest.Envelope
+		stmt attest.Statement
+		err  error
+	)
+	// In --follow mode the envelope may not exist yet (session still
+	// open). We allow a missing envelope and render the log alone.
+	if fileExists(envPath) {
+		env, err = attest.ReadFile(envPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "view: %v\n", err)
+			return 1
+		}
+		stmt, _, err = attest.Parse(env)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "view: parse: %v\n", err)
+			return 1
+		}
+	} else if !*follow {
+		fmt.Fprintf(os.Stderr, "view: %s not found (use --follow for live session)\n", envPath)
 		return 1
 	}
 
 	// Collect events from the sibling audit log if present.
 	logPath := sibling(envPath, "session.log")
 	if !fileExists(logPath) {
-		// Try <envelope_basename>.log
 		logPath = envPath[:max(0, len(envPath)-4)] + ".log"
 	}
-	events, _ := readEvents(logPath)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -74,17 +85,38 @@ func runView(args []string) int {
 	})
 	mux.HandleFunc("/api/envelope", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+		// Re-read in follow mode so the viewer sees the envelope
+		// appear once the session closes while the browser is open.
+		if *follow && fileExists(envPath) {
+			if fresh, ferr := attest.ReadFile(envPath); ferr == nil {
+				env = fresh
+				if s, _, perr := attest.Parse(fresh); perr == nil {
+					stmt = s
+				}
+			}
+		}
 		json.NewEncoder(w).Encode(map[string]any{
 			"envelope":  env,
 			"statement": stmt,
+			"follow":    *follow,
 		})
 	})
 	mux.HandleFunc("/api/events", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+		// In follow mode, re-read on every request so the timeline
+		// grows as the session appends events.
+		events, _ := readEvents(logPath)
 		json.NewEncoder(w).Encode(events)
 	})
 	mux.HandleFunc("/api/verify", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+		// In follow mode the envelope may not exist yet; return 404
+		// so the client shows "verification unavailable" rather than
+		// a 500.
+		if !fileExists(envPath) {
+			http.Error(w, "envelope not yet written", http.StatusNotFound)
+			return
+		}
 		ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 		defer cancel()
 		rpt, verr := verify.Verify(ctx, verify.Options{
