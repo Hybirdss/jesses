@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>jesses — attestation viewer</title>
+<style>
+:root {
+  --bg: #0b0d10;
+  --panel: #14181d;
+  --border: #232a33;
+  --fg: #dde4ee;
+  --muted: #8895a6;
+  --ok: #5fd37a;
+  --warn: #e8b14a;
+  --bad: #e55c5c;
+  --link: #7fb3ff;
+  --mono: ui-monospace, Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  padding: 24px;
+}
+h1 { margin: 0 0 4px; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+h2 { margin: 28px 0 12px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.meta { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+}
+.kv { display: grid; grid-template-columns: 180px 1fr; gap: 8px 16px; font-family: var(--mono); font-size: 12px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; word-break: break-all; }
+.gate {
+  display: grid;
+  grid-template-columns: 24px 44px 1fr;
+  align-items: start;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.gate:last-child { border-bottom: 0; }
+.gate .mark { font-size: 16px; line-height: 1.2; }
+.gate .id { font-family: var(--mono); color: var(--muted); font-size: 12px; }
+.gate .title { font-weight: 600; }
+.gate .detail { color: var(--muted); font-size: 12px; margin-top: 2px; font-family: var(--mono); }
+.pass { color: var(--ok); }
+.warn { color: var(--warn); }
+.bad  { color: var(--bad); }
+.event {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,0.02);
+}
+.event .head { display: flex; gap: 12px; align-items: baseline; }
+.event .ts { font-family: var(--mono); color: var(--muted); font-size: 12px; }
+.event .tool { font-weight: 600; font-family: var(--mono); }
+.event .decision { font-size: 11px; padding: 1px 6px; border-radius: 3px; }
+.decision.allow { background: rgba(95,211,122,0.15); color: var(--ok); }
+.decision.deny { background: rgba(229,92,92,0.2); color: var(--bad); }
+.decision.warn { background: rgba(232,177,74,0.15); color: var(--warn); }
+.decision.commit { background: rgba(127,179,255,0.15); color: var(--link); }
+.event .dests { margin-top: 6px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.event .dests span { color: var(--fg); }
+.event .reason { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.verdict { font-size: 16px; font-weight: 700; margin-top: 8px; }
+.verdict.ok { color: var(--ok); }
+.verdict.fail { color: var(--bad); }
+footer { margin-top: 32px; color: var(--muted); font-size: 11px; font-family: var(--mono); }
+a { color: var(--link); }
+</style>
+</head>
+<body>
+
+<h1>jesses — attestation viewer</h1>
+<div class="meta">a cryptographic record of one agent session</div>
+
+<h2>session</h2>
+<div id="session" class="panel"><span class="meta">loading…</span></div>
+
+<h2>verification</h2>
+<div id="verify" class="panel"><span class="meta">loading…</span></div>
+
+<h2>timeline</h2>
+<div id="timeline"></div>
+
+<footer>viewer served locally · this process exits automatically when the TTL expires</footer>
+
+<script>
+(async function () {
+  const [envResp, verifyResp, eventsResp] = await Promise.all([
+    fetch("/api/envelope").then(r => r.json()),
+    fetch("/api/verify").then(r => r.json()),
+    fetch("/api/events").then(r => r.json()),
+  ]);
+
+  renderSession(envResp.statement.predicate);
+  renderVerify(verifyResp);
+  renderTimeline(eventsResp || []);
+})();
+
+function renderSession(p) {
+  const el = document.getElementById("session");
+  el.innerHTML = `
+    <dl class="kv">
+      <dt>session_id</dt><dd>${esc(p.session_id)}</dd>
+      <dt>started_at</dt><dd>${esc(p.started_at)}</dd>
+      <dt>ended_at</dt><dd>${esc(p.ended_at)}</dd>
+      <dt>scope_hash</dt><dd>${esc(p.scope_hash)}</dd>
+      <dt>pub_key</dt><dd>${esc(p.pub_key)}</dd>
+      <dt>merkle_root</dt><dd>${esc(p.merkle_root)}</dd>
+      <dt>leaf_count</dt><dd>${esc(p.leaf_count)}</dd>
+      <dt>rekor_index</dt><dd>${esc(p.precommit?.log_entry?.log_index ?? "—")}</dd>
+      <dt>rekor_log_id</dt><dd>${esc(p.precommit?.log_entry?.log_id ?? "—")}</dd>
+    </dl>
+  `;
+}
+
+function renderVerify(rpt) {
+  const el = document.getElementById("verify");
+  const gateRows = (rpt.gates || []).map(g => {
+    let cls, mark;
+    if (g.pass) { cls = "pass"; mark = "✓"; }
+    else if (g.severity === "advisory") { cls = "warn"; mark = "⚠"; }
+    else { cls = "bad"; mark = "✗"; }
+    return `
+      <div class="gate">
+        <div class="mark ${cls}">${mark}</div>
+        <div class="id">${esc(g.name)}</div>
+        <div>
+          <div class="title">${esc(g.title)}</div>
+          <div class="detail">${esc(g.detail)}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+  const verdictCls = rpt.ok ? "ok" : "fail";
+  const verdict = rpt.ok ? "VALID" : "INVALID";
+  el.innerHTML = gateRows + `<div class="verdict ${verdictCls}">verdict: ${verdict}</div>`;
+}
+
+function renderTimeline(events) {
+  const el = document.getElementById("timeline");
+  if (!events.length) {
+    el.innerHTML = `<div class="panel meta">no events — audit log missing or unreadable</div>`;
+    return;
+  }
+  el.innerHTML = events.map(ev => {
+    const dests = (ev.destinations || []).map(d => `<span>${esc(d)}</span>`).join("  ");
+    const reason = ev.reason ? `<div class="reason">${esc(ev.reason)}</div>` : "";
+    return `
+      <div class="event">
+        <div class="head">
+          <div class="ts">#${ev.seq} · ${esc(ev.ts)}</div>
+          <div class="tool">${esc(ev.tool)}</div>
+          <div class="decision ${esc(ev.decision || "")}">${esc(ev.decision || "?")}</div>
+        </div>
+        ${dests ? `<div class="dests">→ ${dests}</div>` : ""}
+        ${reason}
+      </div>
+    `;
+  }).join("");
+}
+
+function esc(s) {
+  if (s === undefined || s === null) return "";
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[c]);
+}
+</script>
+</body>
+</html>
