@@ -48,6 +48,19 @@ Everything else (policy libraries, verifiers in other languages, transparency-lo
 
 ---
 
+## Governance (pre-commit)
+
+`jesses` is committed to being a **primitive**, not a product. This commitment is pre-launch and irrevocable:
+
+- The primitive (hook, attestation format, verifier, spec) will never be monetized. MIT forever.
+- The format, the verifier semantics, and the test vectors are owned by a neutral foundation — the **jesses Foundation** — to be established before v1.0. No single maintainer or company can steer the standard unilaterally.
+- Enterprise services _on top of_ the primitive (hosted verification, compliance dashboards, managed transparency logs) may be monetized by any party. The primitive itself is not.
+- The maintainer will decline any acquisition or re-license offer that would change this stance.
+
+This commitment exists because Solomon Hykes warned us, in every Docker retrospective, that the single failure mode for a new primitive is the owner deciding to monetize it later. `jesses` will not be that primitive.
+
+See [`ROADMAP.md`](./ROADMAP.md) for the full 90-day plan and governance timeline.
+
 ## License
 
 MIT. See [`LICENSE`](./LICENSE).
