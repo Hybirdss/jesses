@@ -1,0 +1,162 @@
+name: CI
+
+# Runs on every push to main and every pull request.
+# All jobs must pass before merge (enforced via branch protection).
+#
+# NOTE: Actions are pinned to version tags during v0.1 scaffold. Before v0.1
+# release, run `gh api /repos/<owner>/<repo>/actions/workflows` equivalent or
+# the `stepsecurity-io/secure-repo` tool to rewrite every `@vX.Y.Z` to the
+# corresponding commit SHA, and let Dependabot maintain them thereafter.
+# This satisfies OpenSSF Scorecard `Pinned-Dependencies`.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (go ${{ matrix.go }} / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      # Windows intentionally excluded: `internal/audit/writer_unix.go` carries
+      # a `!windows` build tag (flock-based cross-process locking is Unix only).
+      # A Windows writer lands in a later phase and the matrix adds
+      # windows-latest back when that happens. Go 1.22.x and 1.23.x both run
+      # because the project commits to 1.22 minimum per go.mod until a hard
+      # dependency forces a bump.
+      matrix:
+        go: ["1.22.x", "1.23.x"]
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          check-latest: true
+
+      - name: go mod download
+        run: go mod download
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go test (race, count=1, coverage)
+        run: go test -race -count=1 -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: go test (flaky detection, count=3, no coverage)
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.23.x'
+        run: go test -race -count=3 ./...
+
+      - name: reproducible build
+        run: go build -trimpath -ldflags="-buildid=" ./...
+
+      - name: Upload coverage
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.23.x'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.out
+          retention-days: 7
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+          check-latest: true
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --timeout=5m
+
+  vuln:
+    name: govulncheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: govulncheck
+        # `stable` picks the most recent GA Go release on the runner, so the
+        # scanner reasons against the latest-patched stdlib. This is
+        # independent of the test matrix (which honors the go.mod-declared
+        # minimum) and independent of what downstream users build with —
+        # govulncheck here answers "does the code call symbols that still
+        # have unpatched CVEs in the newest available toolchain?" If new
+        # stdlib CVEs land that require a minimum-version bump in the
+        # project itself, that is a separate decision recorded in an ADR.
+        uses: golang/govulncheck-action@v1
+        with:
+          go-version-input: "stable"
+          check-latest: true
+
+  mod-tidy:
+    name: go mod tidy check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+          check-latest: true
+
+      - name: tidy and diff
+        run: |
+          go mod tidy
+          if [[ -n "$(git status --porcelain go.mod go.sum)" ]]; then
+            echo "::error::go.mod / go.sum not tidy. Run 'go mod tidy' locally and commit the result."
+            git --no-pager diff go.mod go.sum
+            exit 1
+          fi

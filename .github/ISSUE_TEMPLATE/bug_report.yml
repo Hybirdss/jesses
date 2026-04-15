@@ -1,0 +1,93 @@
+name: Bug report
+description: Report unexpected behavior in the jesses binary, verifier, or reference library.
+title: "bug: <short summary>"
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a report. Before you continue:
+
+        - If this is a **security** issue, stop and open a private Security Advisory instead. Do not post exploit details here.
+        - If this is a **specification ambiguity** (not a code defect), use the Spec Clarification template.
+        - If this is a **new tool extractor** proposal, use the New Extractor template.
+
+  - type: input
+    id: version
+    attributes:
+      label: jesses version
+      description: Output of `jesses version`. For pre-v0.1 builds, give the commit SHA.
+      placeholder: "v0.1.0 / commit 2bc5cf2"
+    validations:
+      required: true
+
+  - type: input
+    id: go_version
+    attributes:
+      label: Go toolchain version
+      description: Output of `go version`.
+      placeholder: "go version go1.23.4 linux/amd64"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Linux 6.12 / macOS 15.4 / Windows 11 24H2"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What happened
+      description: Describe the observed behavior. One paragraph is usually enough.
+    validations:
+      required: true
+
+  - type: textarea
+    id: what_expected
+    attributes:
+      label: What you expected
+      description: Describe the expected behavior. Quote the spec or doc that establishes the expectation if possible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Exact commands, input files, and output. Prefer a shell transcript over a screenshot.
+      render: bash
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or attestation excerpt
+      description: Paste session audit log excerpts or `.jes` content that illustrates the bug. Redact any real session data that should not be public.
+      render: text
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: bit_exact
+    attributes:
+      label: Bit-exact impact assessment
+      description: Does this bug involve canonical serialization, Merkle hashing, or any output covered by the bit-exact invariant in CONTRIBUTING.md?
+      options:
+        - label: No — the bug is in non-canonical behavior (CLI flags, error messages, logging, help text)
+        - label: Yes — the bug changes canonical output (maintainer will treat this as a spec-impacting issue)
+        - label: Unsure — please triage
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Filer's acknowledgements
+      options:
+        - label: I read SPEC.md and this is not already documented behavior
+          required: true
+        - label: I read THREAT_MODEL.md and this is not an expected adversarial attack (which would go through SECURITY.md)
+          required: true

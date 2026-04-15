@@ -1,0 +1,68 @@
+{
+  "description": "One event was denied — G5 must fail even though G1-G4 pass.",
+  "expected_report": {
+    "gates": [
+      {
+        "name": "G1",
+        "title": "envelope signature",
+        "pass": true,
+        "detail": "ed25519 signature valid",
+        "severity": "mandatory"
+      },
+      {
+        "name": "G2",
+        "title": "merkle root",
+        "pass": false,
+        "detail": "root mismatch: got 24439ba0bf0e9d402ded9b879f3adb4d3207c19f1d8604ecc38bd4d80cd63fae want fb5232305b707e6697d1ecac35dcd71560601aa911bea6abfed3938f8a80ca74",
+        "severity": "mandatory"
+      },
+      {
+        "name": "G3",
+        "title": "rekor pre-commit",
+        "pass": true,
+        "detail": "local hash match (log index 0, rekor not queried)",
+        "severity": "mandatory"
+      },
+      {
+        "name": "G4",
+        "title": "scope hash",
+        "pass": true,
+        "detail": "scope.txt matches committed hash",
+        "severity": "mandatory"
+      },
+      {
+        "name": "G5",
+        "title": "policy compliance",
+        "pass": false,
+        "detail": "3 of 12 events breached policy",
+        "severity": "mandatory"
+      },
+      {
+        "name": "G7",
+        "title": "deliverable provenance",
+        "pass": false,
+        "detail": "no deliverable bound to envelope",
+        "severity": "advisory"
+      },
+      {
+        "name": "G6",
+        "title": "opentimestamps anchor",
+        "pass": false,
+        "detail": "pending bitcoin confirmation — submitted to fake://ots",
+        "severity": "advisory"
+      }
+    ],
+    "ok": false,
+    "session_id": "6a65737365732d7665633a706f6c6963"
+  },
+  "expected_summary": {
+    "g2_pass": true,
+    "g5_pass": false,
+    "g6_pass": false,
+    "overall_ok": false
+  },
+  "fixed_seed_hex": "6a65737365732d737065632d76302e312d66697865642d736565642d78333278",
+  "fixed_start": "2026-04-16T12:00:00Z",
+  "name": "policy-breach",
+  "schema_version": "v0.1"
+}

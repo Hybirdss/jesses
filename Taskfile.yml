@@ -1,0 +1,80 @@
+version: '3'
+
+# jesses v0.1 task runner.
+# Cross-platform (Taskfile beats Makefile on Windows).
+# Placeholder tasks during Day 0 scaffold — real implementations land Day 1+.
+
+tasks:
+  default:
+    cmds:
+      - task --list
+    silent: true
+
+  test:
+    desc: run all Go tests
+    cmds:
+      - go test -race -count=1 -coverprofile=coverage.out -covermode=atomic ./...
+
+  test-flaky:
+    desc: flaky-test detection (count=3 under race)
+    cmds:
+      - go test -race -count=3 ./...
+
+  lint:
+    desc: run golangci-lint per .golangci.yml
+    cmds:
+      - golangci-lint run --timeout 5m
+
+  vuln:
+    desc: check for known CVEs in dependencies and code paths
+    cmds:
+      - govulncheck ./...
+
+  build:
+    desc: build jesses CLI reproducibly (placeholder until cmd/jesses/main.go lands Day 5)
+    cmds:
+      - go build -trimpath -ldflags="-buildid=" ./...
+
+  mod-tidy-check:
+    desc: verify go.mod and go.sum are tidy (mirrors CI check)
+    cmds:
+      - go mod tidy
+      - git diff --exit-code go.mod go.sum
+
+  release:
+    desc: cut a signed release via GoReleaser + cosign + SLSA L3 generator
+    cmds:
+      - echo "release is driven by pushing a vX.Y.Z tag — see .github/workflows/release.yml"
+      - echo "local dry run:"
+      - goreleaser release --clean --snapshot --skip=publish,sign
+
+  scaffold-verify:
+    desc: verify the Day 0 scaffold matches ARCHITECTURE.md
+    cmds:
+      - test -f README.md
+      - test -f ARCHITECTURE.md
+      - test -f THREAT_MODEL.md
+      - test -f SPEC.md
+      - test -f LICENSE
+      - test -f go.mod
+      - test -d cmd/jesses
+      - test -d internal/merkle
+      - test -d internal/precommit
+      - test -d internal/hook/extractors
+      - test -d internal/verify
+      - test -d pkg/attestation
+      - test -d pkg/verify
+      - test -d spec/v0.1/test-vectors
+      - test -d examples/claude-code
+      - test -d .github/workflows
+      - echo "scaffold OK — 16 checks passed"
+
+  spec-check:
+    desc: validate spec/v0.1/predicate.schema.json against JSON Schema meta-schema
+    cmds:
+      - echo "spec-check: schema lands Day 5"
+
+  dogfood:
+    desc: run jesses on its own release build and produce a self-attestation
+    cmds:
+      - echo "dogfood: requires jesses binary — Day 5 milestone"

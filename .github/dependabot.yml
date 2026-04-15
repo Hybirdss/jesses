@@ -1,0 +1,44 @@
+version: 2
+
+# Dependabot keeps two surfaces updated:
+#   - Go modules (go.mod) — direct and indirect stdlib-adjacent packages, if any are added later.
+#   - GitHub Actions — pinned to commit SHAs per OpenSSF Scorecard "Pinned-Dependencies" check.
+#     Dependabot updates the SHA and the accompanying `# @vX.Y.Z` comment in one PR.
+#
+# Rationale: supply-chain tampering in a CI action is the same class of threat as supply-chain
+# tampering in the code itself. Pinning to SHAs plus automated bumps is the accepted mitigation.
+
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "go"
+    reviewers:
+      - "Hybirdss"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "ci"
+    reviewers:
+      - "Hybirdss"

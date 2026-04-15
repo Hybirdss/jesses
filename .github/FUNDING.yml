@@ -1,0 +1,16 @@
+# Funding configuration — inactive until v0.1 release.
+#
+# Rationale (see GOVERNANCE.md §Sustainability):
+#   - `jesses` the primitive is MIT-licensed in perpetuity and will never be
+#     monetized. Funding here supports maintainer time, test infrastructure,
+#     and the commissioned second-language (TypeScript) verifier.
+#   - Funding recipients during v0.1 are the individual maintainer. After
+#     Commonhaus transition (target: v0.2), the Open Collective and GitHub
+#     Sponsors entries point at the Commonhaus fiscal sponsor instead.
+#
+# The entries below are commented out intentionally. They will be activated
+# in the v0.1 release commit once the destinations exist.
+
+# github: [Hybirdss]
+# open_collective: jesses
+# custom: ["https://jesses.dev/sponsor"]

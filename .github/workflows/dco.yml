@@ -1,0 +1,96 @@
+name: DCO
+
+# Blocks pull requests whose commits do not carry `Signed-off-by:`.
+# jesses uses the Developer Certificate of Origin; see CONTRIBUTING.md.
+#
+# Bot commits (author name ending in `[bot]`) are allowlisted — Dependabot
+# and similar tooling do not support DCO sign-off natively, and their
+# commit contents are machine-generated from public metadata where the
+# DCO's "I wrote or have rights to submit this" assertion is trivially
+# satisfied. This mirrors the policy used by kubernetes/kubernetes,
+# sigstore/cosign, and other CNCF projects.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  dco:
+    name: verify sign-off
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Verify every commit is signed off (bot commits allowlisted)
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          git fetch --no-tags --no-recurse-submodules origin "$BASE_SHA" 2>/dev/null || true
+
+          commits=$(git rev-list "${BASE_SHA}..${HEAD_SHA}")
+          if [[ -z "$commits" ]]; then
+            echo "::notice::No commits in range ${BASE_SHA}..${HEAD_SHA} — nothing to verify."
+            exit 0
+          fi
+
+          fail=0
+          total=0
+          passed=0
+          bot_allowed=0
+
+          while read -r sha; do
+            [[ -z "$sha" ]] && continue
+            total=$((total + 1))
+            author_name=$(git log -1 --format='%an' "$sha")
+            author_email=$(git log -1 --format='%ae' "$sha")
+            subject=$(git log -1 --format='%s' "$sha")
+
+            if [[ "$author_name" == *"[bot]" ]]; then
+              echo "✓ $sha  bot allowlisted  ($author_name)  $subject"
+              bot_allowed=$((bot_allowed + 1))
+              continue
+            fi
+
+            if git log -1 --format='%B' "$sha" | grep -qiE '^Signed-off-by:[[:space:]].+<.+@.+>'; then
+              passed=$((passed + 1))
+              echo "✓ $sha  signed off         ($author_name <$author_email>)  $subject"
+            else
+              fail=1
+              echo "✗ $sha  MISSING Signed-off-by  ($author_name <$author_email>)  $subject"
+            fi
+          done <<< "$commits"
+
+          echo ""
+          echo "Summary: $total commits — $passed signed off, $bot_allowed bot-allowlisted, $((total - passed - bot_allowed)) missing."
+
+          if [[ "$fail" -eq 1 ]]; then
+            cat <<'HELP'
+
+          ----
+          One or more commits in this pull request are missing the DCO
+          sign-off line. Add it to each commit and force-push the branch:
+
+              git rebase HEAD~N --signoff     # N = number of commits in this PR
+              git push --force-with-lease
+
+          See CONTRIBUTING.md §"Developer Certificate of Origin (DCO)"
+          for the full text of what signing off asserts.
+          HELP
+            exit 1
+          fi

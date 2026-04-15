@@ -1,0 +1,166 @@
+# golangci-lint configuration for jesses.
+#
+# Rationale:
+#   - jesses is a primitive whose canonical output must be bit-identical forever.
+#     Tight linting catches the subtle drift (unused imports, field reordering in
+#     struct literals, shadowed variables) that can destabilize serialization.
+#   - Zero external dependencies in `internal/` is an architectural invariant.
+#     `depguard` enforces it.
+#   - Security-oriented linters (gosec, bodyclose) are on because a verifier
+#     that leaks file descriptors or mishandles crypto is functionally broken.
+
+run:
+  timeout: 5m
+  go: "1.22"
+  tests: true
+
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - contextcheck
+    - copyloopvar
+    - depguard
+    - errcheck
+    - errorlint
+    - gocritic
+    - gocyclo
+    - gofmt
+    - gofumpt
+    - goimports
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    - nolintlint
+    - revive
+    - staticcheck
+    - tenv
+    - unconvert
+    - unparam
+    - unused
+
+linters-settings:
+  depguard:
+    rules:
+      internal-no-external-deps:
+        files:
+          - "internal/**/*.go"
+        allow:
+          - $gostd
+          - github.com/Hybirdss/jesses
+        deny:
+          - pkg: "!(github.com/Hybirdss/jesses)"
+            desc: "internal/ packages must depend only on the Go stdlib and other internal/ packages; no third-party imports permitted (supply-chain invariant)"
+
+  gocyclo:
+    # Threshold bumped for v0.1 scaffold. Shell parsing / destination extraction
+    # have intrinsic complexity that is more legible as one function than as a
+    # pattern-split across several. Revisit at v0.1 release once the hot paths
+    # are settled.
+    min-complexity: 35
+
+  gosec:
+    excludes:
+      # G104 (errors unchecked) is handled by errcheck; avoid duplicate reports.
+      - G104
+    severity: medium
+    confidence: medium
+
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment  # struct layout is frozen for bit-exact invariants; do not reorder for padding
+      - shadow          # err-shadowing in short blocks is idiomatic Go; re-enable if tests start missing bugs because of it
+
+  misspell:
+    locale: US
+
+  revive:
+    rules:
+      - name: var-naming
+      - name: exported
+        arguments:
+          - "checkPrivateReceivers"
+          - "disableStutteringCheck"
+      - name: package-comments
+      - name: error-return
+      - name: error-naming
+      - name: error-strings
+
+  staticcheck:
+    checks:
+      - "all"
+      - "-ST1000"  # package comment optional in test-only files
+
+issues:
+  exclude-rules:
+    # Test files: relax style/complexity checks but keep correctness checks on.
+    - path: _test\.go
+      linters:
+        - gosec
+        - gocyclo
+        - errcheck
+        - errorlint
+        - copyloopvar
+        - unparam
+        - unused
+        - revive
+        - gofumpt
+        - gofmt
+        - goimports
+
+    # RFC 6962 Merkle algorithms have intrinsic complexity; byte-exact match
+    # beats decomposition into smaller functions.
+    - path: internal/merkle/
+      linters:
+        - gocyclo
+
+    # Shell parser and extractor have intrinsic branching on quoting, escapes,
+    # and subshell nesting. Splitting into sub-functions harms legibility for
+    # maintainers; the code is extensively fuzz-tested in lieu.
+    - path: internal/shellparse/
+      linters:
+        - gocyclo
+
+    # HTTP response writes: the returned err means "client closed connection"
+    # or "TCP write failed mid-flight" — standard Go idiom is to log & move on.
+    # The CLI writes JSON bodies in hook / view handlers; these patterns are
+    # safe under errcheck relaxation. Reviewed 2026-04-16.
+    - path: cmd/jesses/(hook|view)\.go
+      linters: [errcheck]
+      text: "Error return value of .*(Write|Encode|Copy).* is not checked"
+
+    # G306 (WriteFile mode > 0600): the project deliberately writes session
+    # artifacts (.jes, test-vector outputs, generated spec files) at 0644 so
+    # downstream tooling — bounty-triage UIs, verifier CI, spec readers —
+    # can consume them from shared workspaces without sudo. Tightening to
+    # 0600 breaks those flows. If the threat model changes (e.g. a multi-
+    # tenant shared host), the specific call sites should get 0600 + an
+    # explicit chown, not a broader exclusion.
+    - linters: [gosec]
+      text: "G306:"
+
+    # gocritic style hints that recur in scaffold-era formatter code. The
+    # stats formatter and similar files will be tightened before v0.1
+    # release; for now they stay on the advisory side.
+    - linters: [gocritic]
+      text: "(ifElseChain|dupBranchBody|appendCombine)"
+
+    # Dead code in internal/verify (policyCompile): parallel work left it
+    # behind during the Day 3+4+5 landing. It is scheduled for either
+    # removal or integration in the next verify-path refactor; noise in
+    # the interim is not useful.
+    - path: internal/verify/verify\.go
+      linters: [unused]
+      text: "`policyCompile`"
+
+    # British vs. American spelling variants we accept without ceremony.
+    # Extend this list rather than rewriting prose to match a locale.
+    - linters: [misspell]
+      text: "`modelled` is a misspelling"
+
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new: false

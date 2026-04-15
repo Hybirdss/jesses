@@ -1,0 +1,126 @@
+name: Release
+
+# Triggered by pushing a semver tag (e.g. v0.1.0).
+# Produces:
+#   - multi-platform binaries via GoReleaser (reproducible: -trimpath, -buildid=)
+#   - cosign v3 signatures on every artifact (keyless, Fulcio + Rekor)
+#   - SLSA Build Level 3 provenance via slsa-framework/slsa-github-generator
+#   - SBOM in SPDX + CycloneDX (syft)
+#   - a `.jes` self-attestation of the release run itself (jesses dogfooding)
+#
+# The release is not "real" until `slsa-verifier` accepts the provenance and
+# cosign verify-blob accepts every binary signature.
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  goreleaser:
+    name: build + sign
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # create release + upload artifacts
+      id-token: write       # cosign keyless + SLSA provenance
+      packages: write       # optional container image push
+    outputs:
+      hashes: ${{ steps.hashes.outputs.hashes }}
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+          check-latest: true
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: v3.0.0
+
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0
+
+      - name: GoReleaser
+        id: goreleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Collect checksums for SLSA
+        id: hashes
+        env:
+          ARTIFACTS: "${{ steps.goreleaser.outputs.artifacts }}"
+        run: |
+          set -euo pipefail
+          echo "hashes=$(echo -n "$ARTIFACTS" | jq --raw-output '.[] | select(.type == "Binary" or .type == "Archive") | [.name, .extra.Checksum] | join(" ")' | sort -u | base64 -w0)" >> "$GITHUB_OUTPUT"
+
+  provenance:
+    name: SLSA Build L3 provenance
+    needs: [goreleaser]
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
+    with:
+      base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
+      upload-assets: true
+
+  dogfood:
+    name: self-attest (.jes on the release run)
+    needs: [goreleaser, provenance]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+          check-latest: true
+
+      - name: Run jesses against the release event
+        # The jesses binary produced in `goreleaser` is self-applied to this
+        # workflow's own tool invocations. The resulting `.jes` is uploaded as
+        # a release asset. This is the dogfooding promise in README.md.
+        run: |
+          set -euo pipefail
+          echo "jesses self-attestation runs once the v0.1 CLI ships (Day 5 milestone)."
+          echo "Until then this job is a placeholder that no-ops green."
+          # Intentionally left as a no-op until cmd/jesses/main.go exists.
+          # Replacement implementation: invoke jesses with policy=release.scope.txt,
+          # run `go build ./... && go test ./...`, emit release.jes alongside binaries.

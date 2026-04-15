@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>jesses — attestation viewer</title>
+<style>
+:root {
+  --bg: #0b0d10;
+  --panel: #14181d;
+  --border: #232a33;
+  --fg: #dde4ee;
+  --muted: #8895a6;
+  --ok: #5fd37a;
+  --warn: #e8b14a;
+  --bad: #e55c5c;
+  --link: #7fb3ff;
+  --cite-bg: rgba(127,179,255,0.12);
+  --cite-border: #7fb3ff;
+  --mono: ui-monospace, Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  padding: 24px;
+}
+h1 { margin: 0 0 4px; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+h2 { margin: 28px 0 12px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.meta { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+}
+.kv { display: grid; grid-template-columns: 180px 1fr; gap: 8px 16px; font-family: var(--mono); font-size: 12px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; word-break: break-all; }
+.gate {
+  display: grid;
+  grid-template-columns: 24px 44px 1fr;
+  align-items: start;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.gate:last-child { border-bottom: 0; }
+.gate .mark { font-size: 16px; line-height: 1.2; }
+.gate .id { font-family: var(--mono); color: var(--muted); font-size: 12px; }
+.gate .title { font-weight: 600; }
+.gate .detail { color: var(--muted); font-size: 12px; margin-top: 2px; font-family: var(--mono); }
+.pass { color: var(--ok); }
+.warn { color: var(--warn); }
+.bad  { color: var(--bad); }
+
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 1200px) { .split { grid-template-columns: 1fr; } }
+
+.event {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,0.02);
+  transition: background 120ms, border-color 120ms;
+}
+.event.cited { background: var(--cite-bg); border-color: var(--cite-border); }
+.event.highlighted { background: rgba(232,177,74,0.18); border-color: var(--warn); }
+.event .head { display: flex; gap: 12px; align-items: baseline; }
+.event .ts { font-family: var(--mono); color: var(--muted); font-size: 12px; }
+.event .tool { font-weight: 600; font-family: var(--mono); }
+.event .decision { font-size: 11px; padding: 1px 6px; border-radius: 3px; }
+.event .cite-badge { font-size: 11px; padding: 1px 6px; border-radius: 3px; background: var(--cite-border); color: #0b0d10; margin-left: auto; font-weight: 600; }
+.decision.allow { background: rgba(95,211,122,0.15); color: var(--ok); }
+.decision.deny { background: rgba(229,92,92,0.2); color: var(--bad); }
+.decision.warn { background: rgba(232,177,74,0.15); color: var(--warn); }
+.decision.commit { background: rgba(127,179,255,0.15); color: var(--link); }
+.event .dests { margin-top: 6px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.event .dests span { color: var(--fg); }
+.event .reason { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.verdict { font-size: 16px; font-weight: 700; margin-top: 8px; }
+.verdict.ok { color: var(--ok); }
+.verdict.fail { color: var(--bad); }
+
+.report-body {
+  font: 14px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.report-body a.cite {
+  color: var(--link);
+  text-decoration: none;
+  background: var(--cite-bg);
+  padding: 0 4px;
+  border-radius: 3px;
+  border: 1px solid var(--cite-border);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.report-body a.cite:hover { background: var(--cite-border); color: #0b0d10; }
+.report-body h1, .report-body h2, .report-body h3 {
+  white-space: normal;
+  margin: 1em 0 0.4em;
+}
+.report-body code {
+  font-family: var(--mono);
+  background: rgba(255,255,255,0.05);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+footer { margin-top: 32px; color: var(--muted); font-size: 11px; font-family: var(--mono); }
+a { color: var(--link); }
+</style>
+</head>
+<body>
+
+<h1>jesses — attestation viewer</h1>
+<div class="meta">a cryptographic record of one agent session</div>
+
+<h2>session</h2>
+<div id="session" class="panel"><span class="meta">loading…</span></div>
+
+<h2>verification</h2>
+<div id="verify" class="panel"><span class="meta">loading…</span></div>
+
+<h2 id="split-heading">timeline</h2>
+<div id="split" class="panel" style="padding:0;background:transparent;border:0;">
+  <div class="split">
+    <div>
+      <div id="timeline"></div>
+    </div>
+    <div id="report-pane" style="display:none;">
+      <div class="panel" id="report"></div>
+    </div>
+  </div>
+</div>
+
+<footer>viewer served locally · this process exits automatically when the TTL expires</footer>
+
+<script>
+(async function () {
+  await refresh();
+  const envResp = await fetch("/api/envelope").then(r => r.json()).catch(() => ({}));
+  if (envResp.follow) {
+    const banner = document.createElement("div");
+    banner.className = "meta";
+    banner.style.cssText = "margin: 4px 0 12px; color: var(--warn);";
+    banner.textContent = "● live — polling every 2s";
+    document.body.insertBefore(banner, document.getElementById("session"));
+    setInterval(refresh, 2000);
+  }
+})();
+
+async function refresh() {
+  try {
+    const [envResp, verifyResp, eventsResp, reportResp] = await Promise.all([
+      fetch("/api/envelope").then(r => r.json()),
+      fetch("/api/verify").then(r => r.json()).catch(() => null),
+      fetch("/api/events").then(r => r.json()),
+      fetch("/api/report").then(r => r.json()).catch(() => ({ present: false })),
+    ]);
+    if (envResp.statement && envResp.statement.predicate) {
+      renderSession(envResp.statement.predicate);
+    } else {
+      document.getElementById("session").innerHTML =
+        `<span class="meta">envelope not written yet — session still active</span>`;
+    }
+    if (verifyResp) renderVerify(verifyResp);
+    else document.getElementById("verify").innerHTML =
+      `<span class="meta">verification unavailable (no envelope yet)</span>`;
+
+    const citations = reportResp.present ? extractCitations(reportResp.body) : [];
+    renderTimeline(eventsResp || [], citations);
+    renderReport(reportResp, citations);
+    if (reportResp.present) {
+      document.getElementById("split-heading").textContent = "timeline ⟷ report";
+      document.getElementById("report-pane").style.display = "block";
+    }
+  } catch (e) {
+    console.warn("refresh failed", e);
+  }
+}
+
+function renderSession(p) {
+  const el = document.getElementById("session");
+  el.innerHTML = `
+    <dl class="kv">
+      <dt>session_id</dt><dd>${esc(p.session_id)}</dd>
+      <dt>started_at</dt><dd>${esc(p.started_at)}</dd>
+      <dt>ended_at</dt><dd>${esc(p.ended_at)}</dd>
+      <dt>scope_hash</dt><dd>${esc(p.scope_hash)}</dd>
+      <dt>pub_key</dt><dd>${esc(p.pub_key)}</dd>
+      <dt>merkle_root</dt><dd>${esc(p.merkle_root)}</dd>
+      <dt>leaf_count</dt><dd>${esc(p.leaf_count)}</dd>
+      <dt>rekor_index</dt><dd>${esc(p.precommit?.log_entry?.log_index ?? "—")}</dd>
+      <dt>deliverable</dt><dd>${p.deliverable_binding ? esc(p.deliverable_binding.path) + " (sha256 " + esc(p.deliverable_binding.sha256.substring(0, 16)) + "…, " + esc(p.deliverable_binding.citation_count) + " citations)" : "<span class='muted'>none bound</span>"}</dd>
+    </dl>
+  `;
+}
+
+function renderVerify(rpt) {
+  const el = document.getElementById("verify");
+  const gateRows = (rpt.gates || []).map(g => {
+    let cls, mark;
+    if (g.pass) { cls = "pass"; mark = "✓"; }
+    else if (g.severity === "advisory") { cls = "warn"; mark = "⚠"; }
+    else { cls = "bad"; mark = "✗"; }
+    return `
+      <div class="gate">
+        <div class="mark ${cls}">${mark}</div>
+        <div class="id">${esc(g.name)}</div>
+        <div>
+          <div class="title">${esc(g.title)}</div>
+          <div class="detail">${esc(g.detail)}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+  const verdictCls = rpt.ok ? "ok" : "fail";
+  const verdict = rpt.ok ? "VALID" : "INVALID";
+  el.innerHTML = gateRows + `<div class="verdict ${verdictCls}">verdict: ${verdict}</div>`;
+}
+
+function renderTimeline(events, citations) {
+  const el = document.getElementById("timeline");
+  if (!events.length) {
+    el.innerHTML = `<div class="panel meta">no events — audit log missing or unreadable</div>`;
+    return;
+  }
+  const citedSeqs = new Set(citations.map(c => c.seq).filter(s => s !== null));
+  el.innerHTML = events.map(ev => {
+    const isCited = citedSeqs.has(ev.seq ?? 0);
+    const dests = (ev.destinations || []).map(d => `<span>${esc(d)}</span>`).join("  ");
+    const reason = ev.reason ? `<div class="reason">${esc(ev.reason)}</div>` : "";
+    const badge = isCited ? `<div class="cite-badge">cited</div>` : "";
+    return `
+      <div class="event ${isCited ? 'cited' : ''}" id="ev-${esc(ev.seq ?? 0)}">
+        <div class="head">
+          <div class="ts">#${ev.seq ?? 0} · ${esc(ev.ts)}</div>
+          <div class="tool">${esc(ev.tool)}</div>
+          <div class="decision ${esc(ev.decision || "")}">${esc(ev.decision || "?")}</div>
+          ${badge}
+        </div>
+        ${dests ? `<div class="dests">→ ${dests}</div>` : ""}
+        ${reason}
+      </div>
+    `;
+  }).join("");
+}
+
+function renderReport(reportResp, citations) {
+  const el = document.getElementById("report");
+  if (!reportResp.present) {
+    el.innerHTML = `<span class="meta">no report bound to this envelope — run <code>jesses view --report report.md …</code> to show side-by-side</span>`;
+    return;
+  }
+  // Very small markdown → HTML transform. Good enough for bounty
+  // reports which rarely use obscure constructs.
+  const rendered = markdownToHTML(reportResp.body, citations);
+  el.innerHTML = `<div class="meta">${esc(reportResp.path)}</div><div class="report-body">${rendered}</div>`;
+
+  el.querySelectorAll("a.cite").forEach(a => {
+    a.addEventListener("click", e => {
+      e.preventDefault();
+      const seq = a.dataset.seq;
+      const target = document.getElementById("ev-" + seq);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        target.classList.add("highlighted");
+        setTimeout(() => target.classList.remove("highlighted"), 2000);
+      }
+    });
+  });
+}
+
+// extractCitations scans markdown for [^ev:N] and [^hash:H] markers.
+function extractCitations(body) {
+  const re = /\[\^(ev:(\d+)|hash:([a-fA-F0-9]{4,64}))\]/g;
+  const out = [];
+  let m;
+  while ((m = re.exec(body)) !== null) {
+    if (m[2]) out.push({ markerID: m[1], seq: parseInt(m[2], 10), hashPrefix: null });
+    else out.push({ markerID: m[1], seq: null, hashPrefix: m[3].toLowerCase() });
+  }
+  return out;
+}
+
+// markdownToHTML is a minimal safe renderer: headers, paragraphs,
+// code spans, bold/italic, citations. No raw HTML pass-through (CSP
+// forbids inline anyway).
+function markdownToHTML(md, citations) {
+  let safe = esc(md);
+  // Strip the generated footnote-definitions block — we render it
+  // inline via the cite badges.
+  safe = safe.split("\n").filter(l => !/^\s*\[\^(ev:\d+|hash:[a-fA-F0-9]+)\]:/.test(l)).join("\n");
+  // Headers
+  safe = safe.replace(/^###\s+(.*)$/gm, "<h3>$1</h3>");
+  safe = safe.replace(/^##\s+(.*)$/gm, "<h2>$1</h2>");
+  safe = safe.replace(/^#\s+(.*)$/gm, "<h1>$1</h1>");
+  // Code spans
+  safe = safe.replace(/`([^`]+)`/g, "<code>$1</code>");
+  // Bold + italic (simple, non-nested)
+  safe = safe.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  safe = safe.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+  // Citations → anchors
+  safe = safe.replace(/\[\^ev:(\d+)\]/g,
+    (match, seq) => `<a class="cite" data-seq="${esc(seq)}" href="#ev-${esc(seq)}">[#${esc(seq)}]</a>`);
+  safe = safe.replace(/\[\^hash:([a-fA-F0-9]+)\]/g,
+    (match, h) => `<a class="cite" data-hash="${esc(h)}" href="#">[hash:${esc(h.substring(0, 8))}]</a>`);
+  return safe;
+}
+
+function esc(s) {
+  if (s === undefined || s === null) return "";
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[c]);
+}
+</script>
+</body>
+</html>

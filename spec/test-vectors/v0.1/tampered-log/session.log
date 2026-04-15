@@ -1,0 +1,6 @@
+{"seq":0,"ts":"2026-04-16T12:00:00Z","tool":"jesses.precommit","input_hash":"74168ed97a6ddd43b88b06fedf39e33d2563fd4a521632629264c8ba73ff9eaa","decision":"commit","reason":"session pre-commitment","policy_ref":"ef2bc7e5fcbbe1b169d1bf325e714a38094e010cf3bfb7c3d7e4d06176ca2dee"}
+{"seq":1,"ts":"2026-04-16T12:00:01Z","tool":"curl","input_hash":"hash-1","destinations":["api.target.com"],"decision":"allow","reason":"in scope","policy_ref":""}
+{"seq":0,"ts":"2026-04-16T12:00:00Z","tool":"jesses.precommit","input_hash":"74168ed97a6ddd43b88b06fedf39e33d2563fd4a521632629264c8ba73ff9eaa","decision":"commit","reason":"session pre-commitment","policy_ref":"ef2bc7e5fcbbe1b169d1bf325e714a38094e010cf3bfb7c3d7e4d06176ca2dee"}
+{"seq":1,"ts":"2026-04-16T12:00:01Z","tool":"curl","input_hash":"hash-1","destinations":["api.target.com"],"decision":"allow","reason":"in scope","policy_ref":""}
+{"seq":0,"ts":"2026-04-16T12:00:00Z","tool":"jesses.precommit","input_hash":"74168ed97a6ddd43b88b06fedf39e33d2563fd4a521632629264c8ba73ff9eaa","decision":"commit","reason":"session pre-commitment","policy_ref":"ef2bc7e5fcbbe1b169d1bf325e714a38094e010cf3bfb7c3d7e4d06176ca2dee"}
+{"seq":1,"ts":"2026-04-16T12:00:01Z","tool":"curl","input_hash":"hash-1","destinations":["api.target.com"],"decision":"allow","reason":"in scope","policy_ref":""}
