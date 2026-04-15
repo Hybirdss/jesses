@@ -1,0 +1,42 @@
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+bin/
+dist/
+vendor/
+coverage.out
+coverage.html
+
+# jesses runtime data (never in repo)
+*.key
+*.key.*
+sessions/
+session-*/
+*.jes
+*.jes.ots
+*.rekor
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Dependencies (Go modules are cached globally, but vendor/ if user runs `go mod vendor`)
+go.work
+go.work.sum
+
+# Release tooling
+.goreleaser.yaml.bak
+dist-*/

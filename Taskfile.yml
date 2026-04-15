@@ -1,0 +1,62 @@
+version: '3'
+
+# jesses v0.1 task runner.
+# Cross-platform (Taskfile beats Makefile on Windows).
+# Placeholder tasks during Day 0 scaffold — real implementations land Day 1+.
+
+tasks:
+  default:
+    cmds:
+      - task --list
+    silent: true
+
+  test:
+    desc: run all Go tests
+    cmds:
+      - go test ./...
+
+  lint:
+    desc: run golangci-lint
+    cmds:
+      - echo "lint: Day 0 scaffold — no Go code yet. golangci-lint will run from Day 1."
+
+  build:
+    desc: build jesses CLI
+    cmds:
+      - echo "build: Day 0 scaffold — no Go code yet. cmd/jesses/main.go lands Day 5."
+
+  release:
+    desc: cut a signed release via GoReleaser + cosign + SLSA L3 generator
+    cmds:
+      - echo "release: pending .github/workflows/release.yml — Day 5 deliverable"
+
+  scaffold-verify:
+    desc: verify the Day 0 scaffold matches ARCHITECTURE.md
+    cmds:
+      - test -f README.md
+      - test -f ARCHITECTURE.md
+      - test -f THREAT_MODEL.md
+      - test -f SPEC.md
+      - test -f LICENSE
+      - test -f go.mod
+      - test -d cmd/jesses
+      - test -d internal/merkle
+      - test -d internal/precommit
+      - test -d internal/hook/extractors
+      - test -d internal/verify
+      - test -d pkg/attestation
+      - test -d pkg/verify
+      - test -d spec/v0.1/test-vectors
+      - test -d examples/claude-code
+      - test -d .github/workflows
+      - echo "scaffold OK — 16 checks passed"
+
+  spec-check:
+    desc: validate spec/v0.1/predicate.schema.json against JSON Schema meta-schema
+    cmds:
+      - echo "spec-check: schema lands Day 5"
+
+  dogfood:
+    desc: run jesses on its own release build and produce a self-attestation
+    cmds:
+      - echo "dogfood: requires jesses binary — Day 5 milestone"
