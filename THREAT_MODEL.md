@@ -52,7 +52,7 @@ Each attack maps to one or more defenses, all of which are v0.1 requirements.
 
 ## 3. The pre-commitment is the single most important mechanism
 
-Ben Laurie's contribution, paraphrased: *"CT's security is not 'public logs.' It's the Signed Certificate Timestamp — a promise the log makes before inclusion, redeemable later. Without a pre-commitment, a submitter can fabricate the entire session log post-hoc and submit it. The SCT pattern is what makes fabrication detectable, not merely prohibited."*
+The principle CT leans on, paraphrased: *CT's security is not "public logs." It's the Signed Certificate Timestamp — a promise the log makes before inclusion, redeemable later. Without a pre-commitment, a submitter can fabricate the entire session log post-hoc and submit it. The SCT pattern is what makes fabrication detectable, not merely prohibited.*
 
 `jesses` v0.1 ships this pattern as a hard requirement. The pre-commitment is emitted at `jesses session start` and contains:
 

@@ -6,16 +6,16 @@ This document defines the module layout, import boundaries, canonical schemas, a
 
 ## 1. Locked decisions (do not re-litigate)
 
-| Axis | Decision | Source voice |
+| Axis | Decision | Rationale |
 |---|---|---|
-| Language | **Go** (reference + primary verifier) | Filippo Valsorda — `pip install` is an adversarial attack surface; single static binary required; Sigstore ecosystem is Go-native |
-| Format | **in-toto ITE-6 envelope** + new predicate type `https://jesses.dev/v0.1/action-envelope` | Filippo — inherits cosign / Rekor / SLSA verifier infrastructure; standalone format is 6 months of naval-gazing |
-| Log structure | **RFC 6962 Merkle tree** (byte-exact with Certificate Transparency) | Ben Laurie — O(log n) inclusion and consistency proofs; hash chain is O(n) and cannot prove append-only extension at a mid-session checkpoint |
-| Anchors | **OpenTimestamps** (Bitcoin) + **Rekor** (Sigstore transparency log). No other blockchain | Vitalik Buterin — blockchains solve multi-party consensus; this is a single-party integrity problem; Bitcoin via OTS is free via Merkle aggregation; Rekor is sufficient for public witness |
-| Pre-commitment | **Session-start SCT analog**, MANDATORY | Laurie — without pre-commitment, the fabricate-entire-session attack is undetectable; SCT is CT's real secret sauce |
-| Signing key (v0.1) | **Software ed25519** at `~/.jesses/key`; TPM/TEE deferred to v0.3 | Filippo — adversarial-economics defense is honest for v0.1; hardware attestation is the full answer but not a v0.1 blocker |
+| Language | **Go** (reference + primary verifier) | `pip install` is an adversarial attack surface; single static binary required; Sigstore ecosystem is Go-native |
+| Format | **in-toto ITE-6 envelope** + new predicate type `https://jesses.dev/v0.1/action-envelope` | Inherits cosign / Rekor / SLSA verifier infrastructure; a standalone format is 6 months of naval-gazing |
+| Log structure | **RFC 6962 Merkle tree** (byte-exact with Certificate Transparency) | O(log n) inclusion and consistency proofs; a hash chain is O(n) and cannot prove append-only extension at a mid-session checkpoint |
+| Anchors | **OpenTimestamps** (Bitcoin) + **Rekor** (Sigstore transparency log). No other blockchain | Blockchains solve multi-party consensus; this is a single-party integrity problem. Bitcoin via OTS is free via Merkle aggregation; Rekor is sufficient for public witness |
+| Pre-commitment | **Session-start SCT analog**, MANDATORY | Without pre-commitment, the fabricate-entire-session attack is undetectable; SCT is CT's real secret sauce |
+| Signing key (v0.1) | **Software ed25519** at `~/.jesses/key`; TPM/TEE deferred to v0.3 | Adversarial-economics defense is honest for v0.1; hardware attestation is the full answer but not a v0.1 blocker |
 | Privacy modes | Dual — `privacy=off` (raw input stored, bounty submission) and `privacy=on` (hashes only, enterprise) | Dual-use requirement — the same predicate supports both |
-| Adoption lever | **HackerOne** as platform enforcer (the "Chrome" for `.jes`) | Laurie — CT succeeded because Chrome enforced log inclusion; `.jes` needs the same lever |
+| Adoption lever | **HackerOne** as platform enforcer (the "Chrome" for `.jes`) | CT succeeded because Chrome enforced log inclusion; `.jes` needs the same lever |
 
 ---
 
@@ -302,10 +302,31 @@ Every day ends with a passing test. No Day with broken tests. No "I'll fix it to
 
 ---
 
-## 10. Source voices this architecture credits
+## 10. Prior art this architecture leans on
 
-- **Filippo Valsorda** — language verdict (Go), format verdict (in-toto ITE-6), ecosystem reuse over reinvention, adversarial economics for v0.1 keys
-- **Ben Laurie** — Merkle tree vs chain, pre-commitment as the CT secret sauce, multi-operator federation for v0.2+, HackerOne as the Chrome analog, log availability as a security property
-- **Vitalik Buterin** — blockchain minimization, OpenTimestamps sufficient, ZK as v0.3 research, EAS as the correct reputation primitive if that feature ever ships
+- **Sigstore / cosign / SLSA (Go ecosystem)** — language verdict (Go), format verdict (in-toto ITE-6), ecosystem reuse over reinvention, adversarial-economics stance for v0.1 keys
+- **Certificate Transparency (RFC 6962)** — Merkle tree vs chain, pre-commitment as the CT secret sauce, multi-operator federation for v0.2+, HackerOne as the Chrome analog, log availability as a security property
+- **OpenTimestamps + Ethereum Attestation Service precedents** — blockchain minimization, OpenTimestamps sufficient, ZK as v0.3 research, EAS-style primitives as the correct reputation direction if that feature ever ships
 
-This architecture is the result of a single in-house synthesis pass integrating these three voices. It is not a compromise — it is the intersection of what each expert considers non-negotiable.
+This architecture is a single in-house synthesis pass across those three bodies of prior art. It is not a compromise — it is the intersection of what each body of work treats as non-negotiable.
+
+<!-- ARCHITECTURE-TRACKER:AUTO-START -->
+# Architecture
+
+> Auto-generated by architecture-tracker. Do not edit the section between AUTO-START and AUTO-END markers.
+
+## Tech Stack
+- **Languages**: Go
+
+## Overview
+- **21** source files, **2,864** lines of code
+- **2** modules
+
+## Modules
+
+| Module | Files | Lines | Types |
+|--------|-------|-------|-------|
+| `internal` | 21 | 2,864 | .go |
+| `(root)` | 0 | 0 |  |
+
+<!-- ARCHITECTURE-TRACKER:AUTO-END -->

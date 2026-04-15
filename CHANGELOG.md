@@ -6,7 +6,7 @@ All notable changes to `jesses` are recorded here. This file follows [Keep a Cha
 
 ### Added
 
-- **Day 0 scaffold** — v0.1 architecture from in-house dream-team synthesis integrating Filippo Valsorda (language + ecosystem), Ben Laurie (transparency + pre-commitment), and Vitalik Buterin (on-chain minimization) voices
+- **Day 0 scaffold** — v0.1 architecture from in-house synthesis across three bodies of prior art: the Sigstore/SLSA/Go ecosystem (language + ecosystem reuse), Certificate Transparency / RFC 6962 (transparency + pre-commitment), and OpenTimestamps / EAS precedents (on-chain minimization)
 - `README.md` — hero doc with locked decisions summary
 - `ARCHITECTURE.md` — module layout, import rules, 7 invariants, 5-day build order
 - `THREAT_MODEL.md` — submitter-as-adversary premise, 7-attack matrix, defense mapping, v0.1 adversarial-economics defense, v0.3 TEE roadmap

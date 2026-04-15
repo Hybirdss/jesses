@@ -18,7 +18,7 @@ Three strategic paths were considered:
 | B — Hunter-first | Top 10 bounty hunters | 3–6 months | High noise-to-signal; doesn't compel platforms to integrate |
 | **C — Platform-first** | **Immunefi integration** | **6–9 months** | **Needs only one "yes"; Immunefi is the softest target (crypto-native, small team, already hurting from AI-submission validity problems); one reference integration unlocks copies** |
 
-Rationale: the central insight from Ben Laurie (Certificate Transparency) is that standards become standards when a platform _enforces_ them. CT succeeded because Chrome made log inclusion mandatory. `jesses` needs the same lever. Chasing regulators (Bet A) is orthogonal to whether the thing gets used day-to-day. Chasing hunters (Bet B) amplifies but does not compel. Chasing a platform directly is the shortest path to forced adoption.
+Rationale: the central insight from Certificate Transparency is that standards become standards when a platform _enforces_ them. CT succeeded because Chrome made log inclusion mandatory. `jesses` needs the same lever. Chasing regulators (Bet A) is orthogonal to whether the thing gets used day-to-day. Chasing hunters (Bet B) amplifies but does not compel. Chasing a platform directly is the shortest path to forced adoption.
 
 Immunefi is the chosen platform because:
 
@@ -33,19 +33,19 @@ Bet B (hunter cohort) runs in parallel as a _secondary_ channel — top 10 hunte
 
 ## Locked decisions from direction meeting
 
-Integrated voices: Katie Moussouris (security standards politics), Patrick Collison (developer experience compounding), Solomon Hykes (primitive-vs-product discipline).
+Prior-art bodies leaned on: security-standards politics (the CVD history), developer-experience compounding (the Stripe-era API quality bar), primitive-vs-product discipline (the open-source-stewardship precedent of reference hubs that lost neutrality).
 
-| # | Decision | Source |
+| # | Decision | Rationale |
 |---|---|---|
-| 1 | **Primitive forever, never a product**. Pre-commitment in README and this document. | Hykes — Docker Inc.'s monetization of Docker Hub was the single mistake that created the 2015 fork; `jesses` pre-empts this before launch |
-| 2 | **Neutral foundation governance pre-committed** before v1.0, drafted in Week 11 of this roadmap | Hykes — post-hoc governance is always late; Moussouris — community trust requires visible neutrality |
-| 3 | **Developer experience is table stakes**. `curl \| sh` install must produce a working `.jes` in <10 seconds. | Collison — Stripe's advantage was never better technology; it was shorter distance from intent to effect |
-| 4 | **Three audience-specific docs landing pages**: hunter, program operator, compliance officer. Zero security jargon on each. | Collison — one README cannot serve three buyers |
-| 5 | **80% of v0.1 engineering effort on the verifier**, not the hook | Collison — the verifier is what determines whether a `.jes` is accepted or rejected; it must be boring, deterministic, well-tested |
-| 6 | **Second language verifier (TypeScript) commissioned during v0.1 development**, ships within 2 weeks of v0.1 | Hykes — two independent implementations is the signal that a project is a standard, not one person's tool |
-| 7 | **Hunter cohort outreach is personal, not broadcast** | Moussouris — the CVD community was built on relationships; broadcast launches die |
-| 8 | **Do not compete with platforms or regulators** — position as an amplifier of their existing trust mechanisms | Moussouris — the single highest-return move for a new security standard is becoming "the thing regulators reference" |
-| 9 | **No dashboard, no hosted service, no SaaS component in v0.1** | Hykes — every such addition is a step toward product and away from primitive |
+| 1 | **Primitive forever, never a product**. Pre-commitment in README and this document. | Reference hubs that later monetize their reference role have historically fractured communities and triggered forks; `jesses` pre-empts this before launch |
+| 2 | **Neutral foundation governance pre-committed** before v1.0, drafted in Week 11 of this roadmap | Post-hoc governance is always late; community trust requires visible neutrality |
+| 3 | **Developer experience is table stakes**. `curl \| sh` install must produce a working `.jes` in <10 seconds. | The durable product advantage is never better technology; it is shorter distance from intent to effect |
+| 4 | **Three audience-specific docs landing pages**: hunter, program operator, compliance officer. Zero security jargon on each. | One README cannot serve three buyers |
+| 5 | **80% of v0.1 engineering effort on the verifier**, not the hook | The verifier is what determines whether a `.jes` is accepted or rejected; it must be boring, deterministic, well-tested |
+| 6 | **Second language verifier (TypeScript) commissioned during v0.1 development**, ships within 2 weeks of v0.1 | Two independent implementations is the signal that a project is a standard, not one person's tool |
+| 7 | **Hunter cohort outreach is personal, not broadcast** | The CVD community was built on relationships; broadcast launches die |
+| 8 | **Do not compete with platforms or regulators** — position as an amplifier of their existing trust mechanisms | The single highest-return move for a new security standard is becoming "the thing regulators reference" |
+| 9 | **No dashboard, no hosted service, no SaaS component in v0.1** | Every such addition is a step toward product and away from primitive |
 
 ---
 
@@ -68,7 +68,7 @@ Per `ARCHITECTURE.md §8`:
 ### Week 5–8 (Days 31–60): first-user cohort + second verifier
 
 **Week 5 — cohort activation**
-- Day 31–33: personal email to 10 top bounty hunters (Rhynorater, NahamSec, InsiderPhD, and 7 others). Content: "I'm testing a new attestation standard for AI-assisted submissions. Here's a signed binary, here's a 1-page guide, here's my phone number. No pressure — just curious if you'd attach a `.jes` to your next submission and tell me what the triage team says."
+- Day 31–33: personal email to ~10 top bounty hunters (shortlist compiled at outreach time from H1/BC/Immunefi leaderboards). Content: "I'm testing a new attestation standard for AI-assisted submissions. Here's a signed binary, here's a 1-page guide, here's my phone number. No pressure — just curious if you'd attach a `.jes` to your next submission and tell me what the triage team says."
 - Day 31–33: personal contact with Immunefi trust team, HackerOne trust team, Bugcrowd trust team. **Specifically not asking for a mandate.** Asking one question: "What's the technical integration surface that would let your platform verify `.jes` attachments on intake?" This is intake engineering, not standards lobbying.
 - Day 34–35: Immunefi deep dive. Aim for a specific engineer, not a product manager. Crypto engagement matters.
 
@@ -77,8 +77,8 @@ Per `ARCHITECTURE.md §8`:
 - Why TypeScript: platform intake webhooks at H1/BC/Immunefi are JS-heavy; TypeScript is the adoption-friendliest second language.
 
 **Week 7 — public launch**
-- Day 43–49: "Show HN: jesses, a tamper-evident attestation standard for AI-authored security deliverables." Title tested with a trusted first reader. Pre-reviewed by Filippo Valsorda if contact possible.
-- Day 43–49: Simon Willison blog cross-post pre-arranged. His audience is the AI-agent-safety crowd `jesses` targets.
+- Day 43–49: "Show HN: jesses, a tamper-evident attestation standard for AI-authored security deliverables." Title tested with a trusted first reader. Pre-reviewed by a respected Go/Sigstore-ecosystem reviewer if contact is possible.
+- Day 43–49: Cross-post pre-arranged with an AI-agent-safety-focused independent blogger. Their audience is the crowd `jesses` targets.
 - Day 43–49: `/r/LocalLLaMA` cross-post, `lobste.rs` post, focused Mastodon thread (no broadcast spam).
 
 **Week 8 — regulatory submission**
@@ -124,8 +124,8 @@ Miss any one → re-evaluate the strategic bet. Miss two or more → pivot or su
 - No ZK proofs, no EAS, no on-chain reputation, no smart contracts (v0.3+)
 - No TEE attestation (v0.3 — adversarial-economics defense covers v0.1/v0.2)
 - No monetization, no pricing page, no free-tier/paid split (never)
-- No hosted service, no dashboard SaaS, no cloud offering (Hykes rule)
-- No competition with HackerOne / Immunefi / Bugcrowd as platforms (Moussouris rule)
+- No hosted service, no dashboard SaaS, no cloud offering (primitive-only rule)
+- No competition with HackerOne / Immunefi / Bugcrowd as platforms (amplifier-not-competitor rule)
 - No third or fourth language verifier until after v0.2 (focus)
 - No attempt to "enter" the C2PA standard (adjacent, different problem space)
 
@@ -149,7 +149,7 @@ Miss any one → re-evaluate the strategic bet. Miss two or more → pivot or su
 
 Non-exhaustive list of requests that will be refused, in advance, to save everyone time:
 
-- "Can you add a cloud dashboard?" → No. See Hykes rule.
+- "Can you add a cloud dashboard?" → No. See primitive-only rule.
 - "Can we pay you for priority support?" → No for the primitive. Enterprise services belong to a separate entity.
 - "Can we add a commercial license tier?" → No. MIT is irrevocable.
 - "Can we strip the pre-commitment to reduce latency?" → No. Pre-commitment is mandatory per THREAT_MODEL.md §3.

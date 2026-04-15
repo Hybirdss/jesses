@@ -10,7 +10,7 @@ When an AI agent produces a bug bounty report, a pentest finding, or a B2B secur
 
 ## Status
 
-**v0.1 scaffold.** No executable code yet. Architecture and specification locked from in-house dream-team synthesis (Filippo Valsorda · Ben Laurie · Vitalik Buterin voices integrated).
+**v0.1 scaffold.** No executable code yet. Architecture and specification locked.
 
 v0.1 ship target: a Go binary that installs a PreToolUse hook into Claude Code, records every tool invocation under a policy, emits a signed in-toto ITE-6 attestation at session end, and ships a reference verifier that is bit-exact reproducible across machines.
 
@@ -57,7 +57,7 @@ Everything else (policy libraries, verifiers in other languages, transparency-lo
 - Enterprise services _on top of_ the primitive (hosted verification, compliance dashboards, managed transparency logs) may be monetized by any party. The primitive itself is not.
 - The maintainer will decline any acquisition or re-license offer that would change this stance.
 
-This commitment exists because Solomon Hykes warned us, in every Docker retrospective, that the single failure mode for a new primitive is the owner deciding to monetize it later. `jesses` will not be that primitive.
+This commitment exists because the dominant failure mode for a new primitive is the owner deciding to monetize it later, then losing community trust when the reference hub stops being neutral. `jesses` will not be that primitive.
 
 See [`ROADMAP.md`](./ROADMAP.md) for the full 90-day plan and governance timeline.
 
