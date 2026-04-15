@@ -41,6 +41,8 @@ func main() {
 		os.Exit(runHook(os.Args[2:]))
 	case "stats":
 		os.Exit(runStats(os.Args[2:]))
+	case "show":
+		os.Exit(runShow(os.Args[2:]))
 	case "cite":
 		os.Exit(runCite(os.Args[2:]))
 	case "report":
@@ -71,6 +73,7 @@ Subcommands:
   run        wrap one shell command and emit a .jes attestation
   hook       stdin-driven hook mode for agent harnesses
   stats      one-screen session hygiene dashboard
+  show       pretty-print an envelope without verification
   cite       emit a footnote definition for one audit-log event
   report     bind a report markdown file to an envelope (deliverable provenance)
   init-scope scaffold a scope.txt in the current directory

@@ -24,7 +24,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/Hybirdss/jesses/internal/attest"
 	"github.com/Hybirdss/jesses/internal/audit"
@@ -33,6 +32,7 @@ import (
 	"github.com/Hybirdss/jesses/internal/precommit"
 	"github.com/Hybirdss/jesses/internal/provenance"
 	"github.com/Hybirdss/jesses/internal/rekor"
+	"github.com/Hybirdss/jesses/internal/render"
 )
 
 // Gate is one check in the verification ladder.
@@ -306,33 +306,90 @@ func countBreaches(path string) (breaches, total int, err error) {
 }
 
 // Render produces a human-readable pass/fail summary of the report
-// for the CLI. Each mandatory failure is prefixed ✗, each pass ✓,
-// advisories get ⚠.
+// for the CLI. The default style auto-detects terminal + NO_COLOR;
+// callers who want plain ASCII can pass a Style with ASCII=true to
+// RenderStyled.
 func Render(rpt Report) string {
-	var sb strings.Builder
+	return RenderStyled(rpt, render.NewStyle(os.Stdout))
+}
+
+// RenderStyled is Render with an explicit Style. Used by `jesses
+// verify --ascii` and by tests that want deterministic output.
+func RenderStyled(rpt Report, st render.Style) string {
+	const width = 74
+
+	mandatory := []string{}
+	advisory := []string{}
 	pass := 0
+	mandatoryFail := false
 	for _, g := range rpt.Gates {
 		if g.Pass {
 			pass++
+		} else if g.Severity == "mandatory" {
+			mandatoryFail = true
+		}
+		line := renderGateLine(g, st, width-2)
+		if g.Severity == "advisory" {
+			advisory = append(advisory, line)
+		} else {
+			mandatory = append(mandatory, line)
 		}
 	}
-	sb.WriteString(fmt.Sprintf("session %s\n\n", rpt.SessionID))
-	for _, g := range rpt.Gates {
-		mark := "✗"
-		if g.Pass {
-			mark = "✓"
-		} else if g.Severity == "advisory" {
-			mark = "⚠"
-		}
-		sb.WriteString(fmt.Sprintf("  %s  %s  %s — %s\n", mark, g.Name, g.Title, g.Detail))
-	}
-	sb.WriteString("\n")
+
+	// Verdict stamp: big bold line at the top of the first section.
+	verdictLines := []string{""}
 	if rpt.OK {
-		sb.WriteString(fmt.Sprintf("VERDICT: valid (%d/%d gates pass)\n", pass, len(rpt.Gates)))
+		verdictLines = append(verdictLines,
+			"              "+st.BoldGreen("✓  VALID"),
+			"                 "+st.Dim(fmt.Sprintf("%d of %d gates pass", pass, len(rpt.Gates))),
+		)
 	} else {
-		sb.WriteString(fmt.Sprintf("VERDICT: invalid (%d/%d gates pass; mandatory gate failed)\n", pass, len(rpt.Gates)))
+		reason := "no passing mandatory failures"
+		if mandatoryFail {
+			reason = "1 or more mandatory gates failed"
+		}
+		verdictLines = append(verdictLines,
+			"              "+st.BoldRed("✗  INVALID"),
+			"                 "+st.Dim(fmt.Sprintf("%d of %d gates pass · %s", pass, len(rpt.Gates), reason)),
+		)
 	}
-	return sb.String()
+	verdictLines = append(verdictLines, "")
+
+	sections := []render.Section{
+		{Label: "", Lines: verdictLines},
+	}
+	if len(mandatory) > 0 {
+		sections = append(sections, render.Section{Label: "mandatory", Lines: mandatory})
+	}
+	if len(advisory) > 0 {
+		sections = append(sections, render.Section{Label: "advisory", Lines: advisory})
+	}
+
+	title := "jesses verify"
+	if rpt.SessionID != "" {
+		title = title + "   " + st.Dim("session "+render.HexTrunc(rpt.SessionID, 16))
+	}
+
+	return st.Box(title, sections, width) + "\n"
+}
+
+// renderGateLine formats one gate row: marker, id, title, detail.
+// Aligned columns for visual consistency.
+func renderGateLine(g Gate, st render.Style, width int) string {
+	var mark string
+	switch {
+	case g.Pass:
+		mark = st.GatePass()
+	case g.Severity == "advisory":
+		mark = st.GateAdvisory()
+	default:
+		mark = st.GateFail()
+	}
+
+	nameCol := fmt.Sprintf("%-2s", g.Name)
+	titleCol := fmt.Sprintf("%-25s", g.Title)
+	line := fmt.Sprintf("%s %s  %s  %s", mark, st.Dim(nameCol), titleCol, st.Dim(g.Detail))
+	return line
 }
 
 // checkDeliverable runs the G7 pipeline on the provided report:
