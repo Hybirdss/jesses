@@ -83,6 +83,12 @@ type Config struct {
 	// Now returns the current time. Tests override this for
 	// deterministic timestamps in golden envelopes.
 	Now func() time.Time
+
+	// OverrideID pins the session ID to a known value. Only used by
+	// spec-vector generation and tests that want byte-exact goldens.
+	// Empty means "generate a fresh random ID", which is the
+	// production path.
+	OverrideID string
 }
 
 // Open starts a new session. Steps:
@@ -109,9 +115,13 @@ func Open(ctx context.Context, cfg Config) (*Session, error) {
 		return nil, errors.New("session: Rekor client required (pre-commitment is mandatory)")
 	}
 
-	id, err := randomSessionID()
-	if err != nil {
-		return nil, err
+	id := cfg.OverrideID
+	var err error
+	if id == "" {
+		id, err = randomSessionID()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	pub := cfg.PrivateKey.Public().(ed25519.PublicKey)
