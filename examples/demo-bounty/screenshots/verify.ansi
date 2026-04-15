@@ -1,0 +1,17 @@
+╭── jesses verify   [2msession 777c0ea1d813310c…[0m ─────────────────────────────╮
+│                                                                          │
+│               [1m[31m✗  INVALID[0m                                                 │
+│                  [2m5 of 7 gates pass · 1 or more mandatory gates failed[0m    │
+│                                                                          │
+├─ [2mmandatory[0m ──────────────────────────────────────────────────────────────┤
+│ [32m✓[0m [2mG1[0m  envelope signature         [2med25519 signature valid[0m                 │
+│ [32m✓[0m [2mG2[0m  merkle root                [2m8 leaves, root ab4d55a195e7b755…[0m        │
+│ [32m✓[0m [2mG3[0m  rekor pre-commit           [2mlocal hash match (log index 0, rekor n… │
+│ [32m✓[0m [2mG4[0m  scope hash                 [2mscope.txt matches committed hash[0m        │
+│ [1m[31m✗[0m [2mG5[0m  policy compliance          [2m3 of 8 events breached policy[0m           │
+│ [32m✓[0m [2mG7[0m  deliverable provenance     [2m5/5 citations valid, 3 bare claims (po… │
+├─ [2madvisory[0m ───────────────────────────────────────────────────────────────┤
+│ [33m⚠[0m [2mG6[0m  opentimestamps anchor      [2mpending bitcoin confirmation — submitt… │
+╰──────────────────────────────────────────────────────────────────────────╯
+
+

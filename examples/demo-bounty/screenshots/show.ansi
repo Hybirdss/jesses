@@ -1,0 +1,33 @@
+╭── envelope   [2msession.jes[0m ────────────────────────────────────────────────╮
+│ [2mtype[0m   in-toto Statement V1 · DSSE-ish · ed25519 signed                  │
+│ [2mpredicate[0m v0.1  ·  https://jesses.dev/v0.1/action-envelope               │
+├─ [2msession[0m ────────────────────────────────────────────────────────────────┤
+│ [2mid[0m     777c0ea1d813310c6d0406cf2fc54512                                  │
+│ [2mstarted[0m 2026-04-15T23:46:23.540988237Z                                   │
+│ [2mended[0m  2026-04-15T23:46:23.547904467Z   [2m(6ms)[0m                            │
+│ [2mscope hash[0m [36m8d97f7a7bd3a2db1…[0m[2m   (sha256)[0m                                  │
+│ [2mpub key[0m [36m85ad1748057d7fc6…[0m[2m   (ed25519)[0m                                    │
+├─ [2maudit log[0m ──────────────────────────────────────────────────────────────┤
+│ [2mmerkle root[0m [36mab4d55a195e7b75578b1…[0m                                        │
+│ [2mleaf count[0m 8                                                             │
+├─ [2mpre-commit (rekor)[0m ─────────────────────────────────────────────────────┤
+│ [2mlog index[0m 0                                                              │
+│ [2mlog id[0m fake-log-00000000000…                                             │
+│ [2msigned at[0m 2026-01-01T00:00:00Z                                           │
+│ [2mbody hash[0m [36m8f3de138aa4e8db08953…[0m                                          │
+├─ [2mots anchor[0m ─────────────────────────────────────────────────────────────┤
+│ [2mstatus[0m [33mpending[0m                                                           │
+│ [2mcalendar[0m fake://ots                                                      │
+│ [2msubmitted[0m 2026-01-01T00:00:00Z                                           │
+│ [2mdigest[0m [36mab4d55a195e7b75578b1…[0m                                             │
+├─ [2mdeliverable binding[0m ────────────────────────────────────────────────────┤
+│ [2mpath[0m   report.md                                                         │
+│ [2msha256[0m [36m24ca5d2ececd05aa35c1…[0m                                             │
+│ [2mcitations[0m 5                                                              │
+│ [2mbare claims[0m 3  [2m(policy: warn)[0m                                            │
+├─ [2msignatures[0m ─────────────────────────────────────────────────────────────┤
+│ [2msig 1[0m  keyid [36m6c87d81105a73e81bdce…[0m                                       │
+╰──────────────────────────────────────────────────────────────────────────╯
+
+[2m  verify cryptographically:  jesses verify [0msession.jes
+
