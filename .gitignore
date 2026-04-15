@@ -40,3 +40,8 @@ go.work.sum
 # Release tooling
 .goreleaser.yaml.bak
 dist-*/
+
+# Editor / scanner side artifacts
+.architecture.json
+.aider*
+.cursor/

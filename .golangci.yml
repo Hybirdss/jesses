@@ -1,0 +1,105 @@
+# golangci-lint configuration for jesses.
+#
+# Rationale:
+#   - jesses is a primitive whose canonical output must be bit-identical forever.
+#     Tight linting catches the subtle drift (unused imports, field reordering in
+#     struct literals, shadowed variables) that can destabilize serialization.
+#   - Zero external dependencies in `internal/` is an architectural invariant.
+#     `depguard` enforces it.
+#   - Security-oriented linters (gosec, bodyclose) are on because a verifier
+#     that leaks file descriptors or mishandles crypto is functionally broken.
+
+run:
+  timeout: 5m
+  go: "1.22"
+  tests: true
+
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - contextcheck
+    - copyloopvar
+    - depguard
+    - errcheck
+    - errorlint
+    - gocritic
+    - gocyclo
+    - gofmt
+    - gofumpt
+    - goimports
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    - nolintlint
+    - revive
+    - staticcheck
+    - tenv
+    - unconvert
+    - unparam
+    - unused
+
+linters-settings:
+  depguard:
+    rules:
+      internal-no-external-deps:
+        files:
+          - "internal/**/*.go"
+        allow:
+          - $gostd
+          - github.com/Hybirdss/jesses
+        deny:
+          - pkg: "!(github.com/Hybirdss/jesses)"
+            desc: "internal/ packages must depend only on the Go stdlib and other internal/ packages; no third-party imports permitted (supply-chain invariant)"
+
+  gocyclo:
+    min-complexity: 20
+
+  gosec:
+    excludes:
+      # G104 (errors unchecked) is handled by errcheck; avoid duplicate reports.
+      - G104
+    severity: medium
+    confidence: medium
+
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment  # struct layout is frozen for bit-exact invariants; do not reorder for padding
+
+  misspell:
+    locale: US
+
+  revive:
+    rules:
+      - name: var-naming
+      - name: exported
+        arguments:
+          - "checkPrivateReceivers"
+          - "disableStutteringCheck"
+      - name: package-comments
+      - name: error-return
+      - name: error-naming
+      - name: error-strings
+
+  staticcheck:
+    checks:
+      - "all"
+      - "-ST1000"  # package comment optional in test-only files
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gosec
+        - gocyclo
+        - errcheck
+    - path: internal/merkle/
+      linters:
+        - gocyclo  # RFC 6962 algorithms have intrinsic complexity; byte-exact match beats decomposition
+
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new: false

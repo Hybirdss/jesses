@@ -319,14 +319,14 @@ This architecture is a single in-house synthesis pass across those three bodies 
 - **Languages**: Go
 
 ## Overview
-- **21** source files, **2,864** lines of code
+- **33** source files, **4,977** lines of code
 - **2** modules
 
 ## Modules
 
 | Module | Files | Lines | Types |
 |--------|-------|-------|-------|
-| `internal` | 21 | 2,864 | .go |
+| `internal` | 33 | 4,977 | .go |
 | `(root)` | 0 | 0 |  |
 
 <!-- ARCHITECTURE-TRACKER:AUTO-END -->

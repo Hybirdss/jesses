@@ -1,0 +1,58 @@
+name: OpenSSF Scorecard
+
+# Weekly Scorecard scan. Results uploaded to GitHub's code-scanning and
+# published to the OpenSSF Scorecard API, enabling the README badge.
+#
+# See https://github.com/ossf/scorecard-action for options.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "42 7 * * 1"  # Monday 07:42 UTC
+  workflow_dispatch:
+
+permissions: read-all
+
+concurrency:
+  group: scorecard-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analysis:
+    name: scorecard analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write  # upload SARIF
+      id-token: write         # publish results to Scorecard API
+      contents: read
+      actions: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@v2.4.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SARIF file
+          path: results.sarif
+          retention-days: 5
+
+      - name: Upload to code-scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
