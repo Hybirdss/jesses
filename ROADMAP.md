@@ -63,7 +63,7 @@ Per `ARCHITECTURE.md §8`:
 | 22–28 | `internal/ots` + `internal/attest` + `internal/verify` six-gate orchestrator + `cmd/jesses` CLI + `examples/claude-code/` install script | End-to-end: real Claude Code session → `.jes` → `jesses verify` PASS; `cosign verify-blob` accepts envelope |
 | 29–30 | **Docs week** — three audience pages, GoReleaser + cosign signed release, self-dogfood `.jes` alongside binary | Released binary passes its own `jesses verify` on its own `.jes` |
 
-**Day 30 deliverable**: `github.com/yunsu/jesses` v0.1.0 tagged, signed, released. Public but unannounced.
+**Day 30 deliverable**: `github.com/Hybirdss/jesses` v0.1.0 tagged, signed, released. Public but unannounced.
 
 ### Week 5–8 (Days 31–60): first-user cohort + second verifier
 

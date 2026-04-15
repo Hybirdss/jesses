@@ -14,7 +14,7 @@ All notable changes to `jesses` are recorded here. This file follows [Keep a Cha
 - `LICENSE` — MIT
 - `.gitignore` — Go standard + jesses runtime files
 - `Taskfile.yml` — cross-platform task runner with placeholder tasks
-- `go.mod` — module `github.com/yunsu/jesses`, Go 1.22
+- `go.mod` — module `github.com/Hybirdss/jesses`, Go 1.22
 - `SECURITY.md` — disclosure policy
 - Module tree: `cmd/`, `internal/`, `pkg/`, `spec/`, `examples/`, `testdata/`, `.github/`, `tools/` (35 directories, 22 `.gitkeep` placeholders)
 

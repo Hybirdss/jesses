@@ -1,3 +1,3 @@
-module github.com/yunsu/jesses
+module github.com/Hybirdss/jesses
 
 go 1.22
