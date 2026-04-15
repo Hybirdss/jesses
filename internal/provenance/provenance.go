@@ -285,10 +285,13 @@ func FormatCitation(e audit.Event) string {
 	)
 }
 
-// GenerateTimeline produces a markdown timeline appendix: every
-// event in source order with its citation marker (★) when cited.
-// The agent appends this to the report before session close, giving
-// a triage analyst a chronological walkthrough.
+// GenerateTimeline produces a readable markdown appendix of the
+// session: a header summary, a visual timeline in a fenced block
+// (one line per event with emoji markers for cited/denied), a
+// flagged-events section expanding every deny event with snippet
+// and reason, and a cited-events section naming the footnote
+// references. Rendered markdown viewers (GitHub, Gitea, etc.)
+// preserve spacing inside the fenced block so columns line up.
 func GenerateTimeline(auditLogPath string, citations []Citation) (string, error) {
 	events, _, _, err := loadEvents(auditLogPath)
 	if err != nil {
@@ -300,21 +303,122 @@ func GenerateTimeline(auditLogPath string, citations []Citation) (string, error)
 			citedBySeq[uint64(c.CitedEventSeq)] = c.MarkerID
 		}
 	}
-	var sb strings.Builder
-	sb.WriteString("## Session timeline\n\n")
-	sb.WriteString("| seq | time | tool | decision | cited | summary |\n")
-	sb.WriteString("|-----|------|------|----------|-------|---------|\n")
+
+	var (
+		allowCount, warnCount, denyCount, commitCount int
+		denies                                        []auditEvt
+		citeds                                        []auditEvt
+	)
 	for _, e := range events {
-		mark := ""
-		if _, ok := citedBySeq[e.Seq]; ok {
-			mark = "★"
+		switch e.Decision {
+		case "allow":
+			allowCount++
+		case "warn":
+			warnCount++
+		case "deny":
+			denyCount++
+			denies = append(denies, auditEvt(e))
+		case "commit":
+			commitCount++
 		}
-		sb.WriteString(fmt.Sprintf(
-			"| %d | %s | %s | %s | %s | %s |\n",
-			e.Seq, e.TS, e.Tool, e.Decision, mark, escMD(snippetOf(e)),
+		if _, ok := citedBySeq[e.Seq]; ok {
+			citeds = append(citeds, auditEvt(e))
+		}
+	}
+	sessionID := ""
+	if len(events) > 0 {
+		sessionID = events[0].PolicyRef
+	}
+
+	var sb strings.Builder
+
+	sb.WriteString("# Session Timeline\n\n")
+	if sessionID != "" {
+		sb.WriteString("> scope hash `" + sessionID + "`  \n")
+	}
+	sb.WriteString(fmt.Sprintf(
+		"> %d events · %d allow · %d warn · **%d deny** · %d cited · %s\n\n",
+		len(events), allowCount, warnCount, denyCount, len(citeds),
+		verdictMarker(denyCount),
+	))
+
+	sb.WriteString("## Timeline\n\n")
+	sb.WriteString("```\n")
+	for _, e := range events {
+		marker := "•"
+		if e.Decision == "deny" {
+			marker = "▼"
+		} else if _, ok := citedBySeq[e.Seq]; ok {
+			marker = "★"
+		}
+		ts := shortTime(e.TS)
+		decision := strings.ToUpper(e.Decision)
+		if len(decision) > 6 {
+			decision = decision[:6]
+		}
+		tool := e.Tool
+		if len(tool) > 16 {
+			tool = tool[:16]
+		}
+		sb.WriteString(fmt.Sprintf("%s %s  %s  %-16s  %-6s  %s\n",
+			ts, marker,
+			fmt.Sprintf("#%-3d", e.Seq),
+			tool, decision,
+			snippetOf(e),
 		))
 	}
+	sb.WriteString("```\n\n")
+
+	if len(denies) > 0 {
+		sb.WriteString("## Flagged events\n\n")
+		for _, e := range denies {
+			sb.WriteString(fmt.Sprintf("### ▼ #%d  %s\n\n", e.Seq, e.Tool))
+			sb.WriteString("- **decision**: deny\n")
+			sb.WriteString(fmt.Sprintf("- **reason**: %s\n", e.Reason))
+			if len(e.Destinations) > 0 {
+				sb.WriteString(fmt.Sprintf("- **destinations**: %s\n", strings.Join(e.Destinations, ", ")))
+			}
+			sb.WriteString(fmt.Sprintf("- **when**: %s\n\n", e.TS))
+			sb.WriteString("```\n")
+			sb.WriteString(snippetOf(e))
+			sb.WriteString("\n```\n\n")
+		}
+	}
+
+	if len(citeds) > 0 {
+		sb.WriteString("## Cited events (trusted by G7)\n\n")
+		for _, e := range citeds {
+			marker := citedBySeq[e.Seq]
+			sb.WriteString(fmt.Sprintf("- `[^%s]` → #%d  `%s`\n", marker, e.Seq, snippetOf(e)))
+		}
+		sb.WriteString("\n")
+	}
+
 	return sb.String(), nil
+}
+
+// auditEvt is a local type alias used to keep the imports minimal in
+// GenerateTimeline's helpers without re-exposing audit.Event at the
+// top of the package.
+type auditEvt = audit.Event
+
+// verdictMarker returns a one-word status indicator for the timeline
+// header, based on whether any deny events were recorded.
+func verdictMarker(denyCount int) string {
+	if denyCount == 0 {
+		return "**verdict: clean**"
+	}
+	return "**verdict: invalid**"
+}
+
+// shortTime extracts the HH:MM:SS portion from an RFC3339Nano
+// timestamp for compact timeline rendering. Falls back to the full
+// string when parsing fails.
+func shortTime(ts string) string {
+	if len(ts) >= 19 && ts[10] == 'T' {
+		return ts[11:19]
+	}
+	return ts
 }
 
 // loadEvents reads an audit log and returns the events in source

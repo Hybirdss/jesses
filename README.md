@@ -27,21 +27,27 @@ Or run the full 7-event demo in [`examples/demo-bounty/reproduce.sh`](./examples
 
 ## What it does
 
-Sample verdict on a session with one allowed request and one out-of-scope request:
+Sample verdict on a session with seven tool-use events, three of them denied at hook time:
 
 ```
-session 73716639f16658321cb95997cbc96630
-
-  ✓  G1  envelope signature       — ed25519 signature valid
-  ✓  G2  merkle root              — 8 leaves, root ef46b634aeefe600…
-  ✓  G3  rekor pre-commit         — local hash match (log index 0)
-  ✓  G4  scope hash               — scope.txt matches committed hash
-  ✗  G5  policy compliance        — 3 of 8 events breached policy
-  ✓  G7  deliverable provenance   — 5/5 citations valid, 3 bare claims
-  ⚠  G6  opentimestamps anchor    — pending bitcoin confirmation
-
-VERDICT: invalid (5/7 gates pass; mandatory gate failed)
+╭── jesses verify   session 1dd680d0964ce672… ─────────────────────────────╮
+│                                                                          │
+│               ✗  INVALID                                                 │
+│                  5 of 7 gates pass · 1 or more mandatory gates failed    │
+│                                                                          │
+├─ mandatory ──────────────────────────────────────────────────────────────┤
+│ ✓ G1  envelope signature         ed25519 signature valid                 │
+│ ✓ G2  merkle root                8 leaves, root 1dd680d0964ce672…        │
+│ ✓ G3  rekor pre-commit           local hash match (log index 0)          │
+│ ✓ G4  scope hash                 scope.txt matches committed hash        │
+│ ✗ G5  policy compliance          3 of 8 events breached policy           │
+│ ✓ G7  deliverable provenance     5/5 citations valid, 3 bare claims      │
+├─ advisory ───────────────────────────────────────────────────────────────┤
+│ ⚠ G6  opentimestamps anchor      pending bitcoin confirmation            │
+╰──────────────────────────────────────────────────────────────────────────╯
 ```
+
+`jesses stats` shows the same session as a compact dashboard with deny-flagged hosts highlighted; `jesses show <file.jes>` pretty-prints the envelope's predicate without doing verification.
 
 Seven gates, each mapped to a specific threat ([`THREAT_MODEL.md`](./THREAT_MODEL.md)):
 

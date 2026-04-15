@@ -11,6 +11,7 @@ import (
 
 	"github.com/Hybirdss/jesses/internal/attest"
 	"github.com/Hybirdss/jesses/internal/audit"
+	"github.com/Hybirdss/jesses/internal/render"
 )
 
 // runStats implements `jesses stats <file.jes>`. Computes per-session
@@ -71,29 +72,119 @@ func runStats(args []string) int {
 		return 0
 	}
 
-	fmt.Printf("session %s\n\n", stmt.Predicate.SessionID)
-	fmt.Printf("  events:       %d\n", s.Total)
-	fmt.Printf("  allow:        %d\n", s.Allow)
-	fmt.Printf("  warn:         %d\n", s.Warn)
-	fmt.Printf("  deny:         %d\n", s.Deny)
-	fmt.Printf("  unique hosts: %d\n", s.UniqueHosts)
-	fmt.Printf("  unique paths: %d\n", s.UniquePaths)
-	fmt.Println()
-	fmt.Println("  tools:")
-	for _, p := range s.TopTools {
-		fmt.Printf("    %-12s %d\n", p.Key, p.Count)
-	}
-	fmt.Println()
-	fmt.Println("  top hosts:")
-	for _, p := range s.TopHosts {
-		fmt.Printf("    %-40s %d\n", p.Key, p.Count)
-	}
-	if s.Deny > 0 {
-		fmt.Printf("\n  VERDICT: %d policy breach(es) — run `jesses verify` for the full gate report\n", s.Deny)
-	} else {
-		fmt.Printf("\n  VERDICT: all events in scope\n")
-	}
+	renderStats(stmt.Predicate.SessionID, s, evs)
 	return 0
+}
+
+// renderStats prints the dashboard with colored chips and ASCII bars.
+// Destinations that were denied in the log are highlighted red inline
+// so a reviewer's eye lands on them immediately.
+func renderStats(sessionID string, s Stats, evs []audit.Event) {
+	st := render.NewStyle(os.Stdout)
+
+	// Compute deny-flagged hosts so the top-hosts section can mark them.
+	denyHosts := map[string]bool{}
+	for _, ev := range evs {
+		if ev.Decision == "deny" {
+			for _, d := range ev.Destinations {
+				denyHosts[d] = true
+			}
+		}
+	}
+
+	fmt.Printf("session %s\n\n", st.Dim(sessionID))
+
+	// Decisions bar — single multi-colored line showing ratio.
+	fmt.Printf("  decisions   %s %s\n",
+		decisionsBar(st, s), st.Dim(fmt.Sprintf("%d total", s.Total)))
+	fmt.Printf("              %s %s %s %s\n",
+		st.Green(fmt.Sprintf("allow %d", s.Allow)),
+		st.Yellow(fmt.Sprintf("warn %d", s.Warn)),
+		st.BoldRed(fmt.Sprintf("deny %d", s.Deny)),
+		st.Dim(fmt.Sprintf("commit %d", s.Total-s.Allow-s.Warn-s.Deny)))
+	fmt.Println()
+
+	// Tools histogram.
+	fmt.Println("  tools")
+	maxToolCount := 1
+	for _, p := range s.TopTools {
+		if p.Count > maxToolCount {
+			maxToolCount = p.Count
+		}
+	}
+	for _, p := range s.TopTools {
+		fmt.Printf("    %-12s %s %s\n",
+			p.Key,
+			st.Cyan(st.Bar(p.Count, maxToolCount, 12)),
+			st.Dim(fmt.Sprint(p.Count)))
+	}
+	fmt.Println()
+
+	// Top hosts with deny-flagging.
+	fmt.Println("  top hosts")
+	maxHostCount := 1
+	for _, p := range s.TopHosts {
+		if p.Count > maxHostCount {
+			maxHostCount = p.Count
+		}
+	}
+	for _, p := range s.TopHosts {
+		label := p.Key
+		suffix := ""
+		if denyHosts[p.Key] {
+			label = st.BoldRed(p.Key)
+			suffix = st.BoldRed(" ← deny")
+		}
+		fmt.Printf("    %-40s %s %s%s\n",
+			label,
+			st.Cyan(st.Bar(p.Count, maxHostCount, 8)),
+			st.Dim(fmt.Sprint(p.Count)),
+			suffix)
+	}
+	fmt.Println()
+
+	fmt.Printf("  unique hosts %d  unique paths %d\n\n",
+		s.UniqueHosts, s.UniquePaths)
+
+	if s.Deny > 0 {
+		fmt.Printf("  verdict     %s  %s\n",
+			st.BoldRed("✗ INVALID"),
+			st.Dim(fmt.Sprintf("(%d policy breach%s)",
+				s.Deny, pluralS(s.Deny))))
+		fmt.Printf("              %s\n",
+			st.Dim("run `jesses verify` for the gate report"))
+	} else {
+		fmt.Printf("  verdict     %s  %s\n",
+			st.BoldGreen("✓ clean"),
+			st.Dim("all events in scope"))
+	}
+}
+
+// decisionsBar renders a single ASCII bar whose segments reflect the
+// allow / warn / deny / commit ratio, with each segment colored.
+func decisionsBar(st render.Style, s Stats) string {
+	width := 28
+	if s.Total == 0 {
+		return strings.Repeat(render.BarEmpty, width)
+	}
+	a := s.Allow * width / s.Total
+	w := s.Warn * width / s.Total
+	d := s.Deny * width / s.Total
+	c := width - a - w - d
+	if c < 0 {
+		c = 0
+	}
+	return st.Green(strings.Repeat(render.BarChar, a)) +
+		st.Yellow(strings.Repeat(render.BarChar, w)) +
+		st.BoldRed(strings.Repeat(render.BarChar, d)) +
+		st.Dim(strings.Repeat(render.BarChar, c))
+}
+
+func pluralS(n int) string {
+	if n == 1 {
+		return ""
+	}
+	return "es"
 }
 
 // Stats is the computed summary shape.
