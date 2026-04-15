@@ -56,6 +56,14 @@ func (t TokenType) String() string {
 	return "?"
 }
 
+// MarshalJSON encodes the TokenType as its symbolic name ("WORD",
+// "SEMI", ...). Encoding as a string insulates golden fixtures from
+// iota reordering: adding a new TokenType in the middle of the list
+// would shift integer values but not break serialized outputs.
+func (t TokenType) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + t.String() + `"`), nil
+}
+
 // IsSeparator reports whether the token is a command-separator operator
 // (semicolon, pipe, background, logical-and, logical-or, newline).
 func (t TokenType) IsSeparator() bool {
@@ -191,6 +199,31 @@ func (t *tokenizer) run() error {
 				t.emitOp(TokPipe, "|")
 			}
 		case '&':
+			// Context-sensitive: `&` may be part of a redirection
+			// operator (>&, <&, &>, &>>) rather than a command
+			// separator. Check current word's last char and the next
+			// input char to disambiguate.
+			if t.wordActive {
+				v := t.val.String()
+				if len(v) > 0 && (v[len(v)-1] == '>' || v[len(v)-1] == '<') {
+					// `N>&` or `<&`: ampersand is the duplication
+					// modifier on a redirection. Accumulate into the
+					// current word so later `&1` (fd target) also joins.
+					t.val.WriteByte('&')
+					t.raw.WriteByte('&')
+					t.pos++
+					continue
+				}
+			}
+			if t.pos+1 < len(t.input) && t.input[t.pos+1] == '>' {
+				// `&>` or `&>>`: combined-output redirection begins a
+				// WORD starting with `&`.
+				t.startWord()
+				t.val.WriteByte('&')
+				t.raw.WriteByte('&')
+				t.pos++
+				continue
+			}
 			if t.peek2() == "&&" {
 				t.emitOp(TokAndAnd, "&&")
 			} else {

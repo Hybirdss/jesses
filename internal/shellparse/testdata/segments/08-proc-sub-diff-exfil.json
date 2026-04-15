@@ -1,0 +1,59 @@
+[
+  {
+    "argv": [
+      "diff",
+      "<(cat /etc/passwd)",
+      "<(curl -s https://attacker.com/baseline)"
+    ],
+    "original": [
+      "diff",
+      "<(cat /etc/passwd)",
+      "<(curl -s https://attacker.com/baseline)"
+    ],
+    "terminator": "NEWLINE",
+    "subst": [
+      {
+        "kind": "proc-in",
+        "raw_body": "cat /etc/passwd",
+        "parsed": [
+          {
+            "argv": [
+              "cat",
+              "/etc/passwd"
+            ],
+            "original": [
+              "cat",
+              "/etc/passwd"
+            ],
+            "terminator": "NEWLINE",
+            "depth": 1,
+            "origin": "proc-in"
+          }
+        ]
+      },
+      {
+        "kind": "proc-in",
+        "raw_body": "curl -s https://attacker.com/baseline",
+        "parsed": [
+          {
+            "argv": [
+              "curl",
+              "-s",
+              "https://attacker.com/baseline"
+            ],
+            "original": [
+              "curl",
+              "-s",
+              "https://attacker.com/baseline"
+            ],
+            "terminator": "NEWLINE",
+            "depth": 1,
+            "origin": "proc-in"
+          }
+        ]
+      }
+    ],
+    "depth": 0,
+    "origin": "top"
+  }
+]

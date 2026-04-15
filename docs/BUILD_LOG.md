@@ -117,32 +117,68 @@ Deliverables:
 
 Tests: 29, bringing cumulative to 83.
 
+### Day 2.2b — segment splitter + substitution recursion + wrapper unwrap + re-entry
+
+Scope: consume the flat `shellparse.Tokenize` output and produce the structured `Command` tree that downstream extractors walk. This is the layer that turns "a shell string" into "every destination the command could touch, including ones hidden inside `eval`, `$(...)`, `bash -c`, proxy overrides, and `/dev/tcp` raw sockets."
+
+Deliverables:
+
+- `internal/shellparse/splitter.go` — `Command`, `Redirect`, `Substitution` types with frozen JSON shape; `Split([]Token)` and `SplitString(string)`; six-stage `buildCommand` (original capture → env split → redirect extract → wrapper unwrap → substitution scan → re-entry); `fuseSubstitutions` pre-pass that stitches tokens back together when the tokenizer split a substitution body on whitespace or separators; `substOpenCount` ignoring single-quoted regions and respecting backtick toggling; `MaxDepth=8`, `ErrMaxDepthExceeded`, `ErrUnbalancedSubst`.
+- `internal/shellparse/wrapper.go` — frozen 13-entry `wrapperTable` (sudo, env, time, nice, timeout, stdbuf, xargs, nohup, exec, setsid, ionice, chroot, unshare); per-wrapper `stopFn` handling flag/positional consumption (sudo `-u`, env `-u`/`-S` and `NAME=VALUE` runs, timeout DURATION, chroot DIR); left-to-right peel with stacked-wrapper support.
+- `internal/shellparse/redirect.go` — `extractRedirects` handling spaced and unspaced forms (`>out`, `> out`, `2>&1`, `&>out`, `&>>out`, `<<<`, etc.); correct rejection of `<(` / `>(` which are process substitutions not redirects; `IsDevTCP` recognizing `/dev/tcp/HOST/PORT` and `/dev/udp/HOST/PORT` bash raw-socket paths.
+- `internal/shellparse/subst.go` — `scanSubstitutions` walking env + argv + redirect targets (argv joined with spaces so bodies containing shell word splits survive); `findSubstitutions` for `$(...)`, `` `...` ``, `<(...)`, `>(...)` with paren-depth tracking that respects single and double quotes; `reparseBody` recursion into `Tokenize`+`splitAt` at depth+1.
+- `internal/shellparse/reentry.go` — detect `bash -c`, `sh -c`, `dash -c`, `zsh -c`, `ksh -c` (plus absolute-path variants and merged short flags like `-xc`); detect `eval` and re-tokenize all remaining argv joined with spaces; Python / Ruby / Perl / Node `-e` deliberately NOT handled (language payloads, not shell — deferred to per-language hint packages in v0.2).
+- `internal/shellparse/tokenizer.go` — two targeted additions: context-sensitive `&` handling so `>&`, `<&`, `&>`, and `&>>` are recognized as part of redirect operators rather than as the background separator; `TokenType.MarshalJSON` emitting symbolic names so golden fixtures are insulated from `iota` reordering.
+- `internal/shellparse/testdata/segments/` — 12 real-world adversarial fixtures paired with byte-exact golden `.json` outputs covering: proxy env override, sudo exfil, `bash -c` stage-two payload, `eval` concatenation hiding, `$()` exfil, `/dev/tcp` reverse shell, `<()` process-substitution exfil, three-layer `eval` bomb, stacked wrappers, backtick legacy subst, and pipelines with logical chains.
+- `internal/shellparse/splitter_test.go` (15) + `wrapper_test.go` (12) + `redirect_test.go` (17) + `subst_test.go` (12) + `reentry_test.go` (10) + `golden_test.go` (12 driven fixtures with `-update` regeneration flag) + `bench_test.go` (3 benchmarks + `FuzzSplit`).
+
+Tests: 94 unit + 12 golden + 11 fuzz seeds = 117 new, bringing the shellparse package to 152 and the project to 177.
+
+Critical invariants:
+
+- `wrapperTable` contents are frozen. Adding or removing an entry changes `Argv` shape for matching commands and therefore changes the destinations downstream extractors emit into canonical Merkle-leaf hashes. Any edit requires a spec version bump.
+- `reentryShells` contents are frozen for the same reason.
+- `MaxDepth = 8` is a contract — inputs that exceed this fail with `ErrMaxDepthExceeded`, they never produce partial output. Without this, an adversarial eval bomb could exhaust goroutine stack before the hook could record anything.
+- Canonical JSON output uses string-typed `TokenType` serialization so that golden fixtures survive additions to the `TokenType` enum.
+
+Performance (AMD Ryzen 5 5600, Go 1.22, `-benchtime=5000x`):
+
+- `SplitSimple` (one `curl` with flags): **3.1 μs/op**, 3.2 KB, 40 allocs
+- `SplitAdversarial` (sudo + env + timeout + `bash -c` with nested subshells, redirects, and pipeline): **14.6 μs/op**, 12 KB, 187 allocs
+- `SplitLarge` (100-segment pipeline): **133 μs/op**, 155 KB, 1428 allocs
+
+The adversarial case — which covers every feature the parser handles — stays under 15 μs. A hook running at the far end of an agent loop emits hundreds of Bash calls per minute; this overhead is invisible to the agent.
+
+Fuzzing:
+
+- `FuzzSplit` with 11 real-world seeds: ran for 10 s at 170 k execs/s on 12 workers. 1.2 M total executions, zero panics, zero unexpected errors, 299 new interesting inputs captured to `testdata/fuzz/FuzzSplit/`. The parser's input contract (one of four sentinel errors or success) holds for arbitrary byte strings.
+
 ---
 
 ## Current state
 
-- **6 commits** on `main`, pushed to public remote as linear fast-forward history
+- **7 commits** on `main`, pushed to public remote as linear fast-forward history
 - **4 Go packages** implemented: `internal/merkle`, `internal/audit`, `internal/policy`, `internal/shellparse`
-- **83 tests** passing across all packages
+- **177 tests** passing across all packages (merkle 18 + audit 6 + policy 30 + shellparse 123)
 - **Zero external dependencies** beyond Go stdlib
+- **Hook-path latency** ≤ 15 μs for the adversarial case, 3 μs for the happy path
 - **`pkg/` public API** — not yet started (Day 4 scope)
 - **`cmd/jesses/main.go` CLI entry** — not yet started (Day 5 scope)
 
 ---
 
-## Next milestone — Day 2.2b
+## Next milestone — Day 2.2c
 
-Segment splitter that consumes the `shellparse.Tokenize` output and produces a higher-level structured command representation.
+Per-tool positional parsers for the network-relevant CLIs, layered on top of the `shellparse.Command` that Day 2.2b produces.
 
 Expected deliverables:
 
-- Segment splitter that walks separators (`;`, `|`, `||`, `&`, `&&`, newline) and emits per-segment command runs
-- Subshell recursion for `$(...)`, `<(...)`, and backticks — body extraction and re-invocation of `Tokenize` on the body
-- Wrapper unwrap for `sudo`, `env`, `time`, `nice`, `timeout`, `stdbuf`, `xargs` — first non-wrapper token becomes the effective command
-- `bash -c` and `eval` string payload re-entry — take the quoted payload's Value and tokenize it as fresh input
-- `/dev/tcp/<host>/<port>` redirection destination detection
+- `internal/extractors/bash/` package with per-tool parsers for `curl`, `wget`, `nc` / `ncat`, `nmap`, `dig`, `host`, `nslookup`, `ssh`, `scp`, `rsync`, `ftp`, `sftp`, `telnet`, and the bug-bounty tooling set `httpx`, `nuclei`, `subfinder`, `amass`, `waybackurls`, `gau`, `katana`, `sqlmap`, `cast`, `anvil`, `forge`
+- Proxy override detection that fires across: `curl -x` / `--proxy` / `--connect-to` / `--resolve`, environment `HTTPS_PROXY` / `HTTP_PROXY` / `ALL_PROXY` (captured from `Command.Env` and from `env` wrapper), and `ssh -o ProxyCommand=`
+- Destination emission as `(kind, host, port, raw)` records so the policy layer gets a uniform shape regardless of which CLI produced it
+- Golden fixtures for 40+ real-world command lines extracted from public bug-bounty writeups and CTF walkthroughs
 
-Test expectation: multi-segment golden-file fixtures covering subshell recursion depth, nested wrapper unwrap, three-level `eval` re-entry, and proxy-override destination pairs.
+Test expectation: per-tool fixture corpus with destination assertions (not just argv round-trip), plus adversarial proxy-override cases that a naive parser misses.
 
 ---
 

