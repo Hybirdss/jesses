@@ -172,6 +172,14 @@ docs/adr/                architecture decision records
 - **Hook-path latency**: 3 μs simple, 15 μs adversarial, 133 μs for 100-segment pipelines
 - **Fuzz**: 1.2 M executions at 170 k/s over 10 s, zero panics
 
+## Further reading
+
+- [`WHY.md`](./WHY.md) — the one-page argument for why this exists and why the window to ship it is now
+- [`FAQ.md`](./FAQ.md) — adversarial questions: why not Sigstore as-is, how this differs from Aegis, what breaks first
+- [`THREAT_MODEL.md`](./THREAT_MODEL.md) — the submitter-is-adversary premise and the eight enumerated attacks
+- [`SPEC.md`](./SPEC.md) — the normative v0.1 specification
+- [`docs/adr/`](./docs/adr/) — architecture decision records
+
 ## License
 
 MIT. See [`LICENSE`](./LICENSE).
