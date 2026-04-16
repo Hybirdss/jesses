@@ -90,8 +90,10 @@ jesses/
 │  │
 │  ├─ attest/                   final .jes bundle assembly
 │  │  ├─ build.go               in-toto ITE-6 envelope
-│  │  ├─ sign.go                ed25519 (DSSE)
-│  │  └─ keymgr.go              ~/.jesses/key
+│  │  └─ sign.go                ed25519 (DSSE)
+│  │
+│  ├─ keyring/                  ed25519 key lifecycle
+│  │  └─ keyring.go             load / create / perm-check (~/.jesses/key)
 │  │
 │  ├─ verify/                   verifier engine — 6 gate checks
 │  │  ├─ verify.go              orchestrator
@@ -319,8 +321,8 @@ This architecture is a single in-house synthesis pass across those three bodies 
 - **Languages**: Go
 
 ## Overview
-- **69** source files, **10,713** lines of code
-- **5** modules
+- **89** source files, **14,307** lines of code
+- **6** modules
 
 ## Entry Points
 - `cmd/jesses/main.go`
@@ -330,16 +332,17 @@ This architecture is a single in-house synthesis pass across those three bodies 
 
 | Module | Files | Lines | Types |
 |--------|-------|-------|-------|
-| `internal` | 57 | 8,786 | .go |
-| `cmd` | 7 | 1,167 | .go, .html |
-| `pkg` | 4 | 492 | .go |
-| `tools` | 1 | 268 | .go |
+| `internal` | 69 | 11,230 | .go |
+| `cmd` | 13 | 2,118 | .go, .html |
+| `pkg` | 5 | 546 | .go |
+| `tools` | 1 | 275 | .go |
+| `examples` | 1 | 138 | .py |
 | `(root)` | 0 | 0 |  |
 
 ## Module Dependencies
 ```
-  cmd -> internal, tools
-  internal -> cmd, tools
+  cmd -> internal
+  internal -> cmd
   pkg -> internal
   tools -> internal
 ```

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"crypto/ed25519"
-	"crypto/rand"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -16,6 +15,7 @@ import (
 	"github.com/Hybirdss/jesses/internal/attest"
 	"github.com/Hybirdss/jesses/internal/audit"
 	"github.com/Hybirdss/jesses/internal/extractors/dispatch"
+	"github.com/Hybirdss/jesses/internal/keyring"
 	"github.com/Hybirdss/jesses/internal/ots"
 	"github.com/Hybirdss/jesses/internal/policy"
 	"github.com/Hybirdss/jesses/internal/rekor"
@@ -257,30 +257,16 @@ func classifyDest(d string) (policy.Namespace, string) {
 }
 
 // loadOrCreateKey loads the ed25519 key at path. If path is empty,
-// uses sessionDir/key.priv. If the file does not exist, generates a
-// fresh key and writes it with 0600 permissions.
+// uses sessionDir/key.priv. If the file does not exist, a fresh key
+// is generated and persisted with 0600 permissions via the keyring
+// package. A permission warning is emitted to stderr when an existing
+// key is group/world-readable.
 func loadOrCreateKey(path, sessionDir string) (ed25519.PrivateKey, error) {
 	if path == "" {
 		path = filepath.Join(sessionDir, "key.priv")
 	}
-	raw, err := os.ReadFile(path)
-	if err == nil {
-		if len(raw) != ed25519.PrivateKeySize {
-			return nil, fmt.Errorf("jesses: key %s has wrong size %d", path, len(raw))
-		}
-		return ed25519.PrivateKey(raw), nil
-	}
-	if !os.IsNotExist(err) {
-		return nil, err
-	}
-	_, priv, err := ed25519.GenerateKey(rand.Reader)
-	if err != nil {
-		return nil, err
-	}
-	if err := os.WriteFile(path, priv, 0o600); err != nil {
-		return nil, err
-	}
-	return priv, nil
+	priv, _, err := keyring.LoadOrCreate(path, os.Stderr)
+	return priv, err
 }
 
 // sha256hex hashes b and returns lowercase hex.
