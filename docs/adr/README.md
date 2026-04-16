@@ -21,6 +21,7 @@ Start with 0001 if you are a new contributor: language choice sets every downstr
 | [0006](./0006-ed25519-software-key-v0.1.md) | Software ed25519 signing for v0.1 (TEE deferred) | accepted | 2026-04-16 |
 | [0007](./0007-dual-privacy-modes.md) | Dual privacy modes (raw vs input-hash only) | accepted | 2026-04-16 |
 | [0008](./0008-exclusion-first-policy.md) | Exclusion-first policy evaluation | accepted | 2026-04-16 |
+| [0009](./0009-custom-canonical-json-over-jcs.md) | Strict subset of Go `encoding/json` as canonical form (over RFC 8785 JCS) | accepted | 2026-04-17 |
 
 ## Adding a new ADR
 
