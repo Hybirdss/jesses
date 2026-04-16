@@ -45,3 +45,7 @@ dist-*/
 .architecture.json
 .aider*
 .cursor/
+
+# Private planning notes — strategy, outreach drafts, pitch material.
+# Not for the OSS repo; kept locally under docs/yc/.
+docs/yc/
