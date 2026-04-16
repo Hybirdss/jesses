@@ -4,12 +4,21 @@ All notable changes to `jesses` are recorded here. Format per [Keep a Changelog]
 
 ## [Unreleased]
 
+## [0.1.1] — first green-CI release
+
 ### Added
 
 - `internal/keyring/` — ed25519 key lifecycle extracted from `cmd/jesses/hook.go`. `Signer` interface (v0.3 TEE drop-in), `LoadOrCreate` with atomic tmp+rename write, permission-mode health check (warns on 0644+ key files with a `chmod 600` hint). Zero behavior change at the CLI default path; identity-stable `~/.jesses/key` available via `keyring.DefaultPath()` for callers that want cross-session identity.
 - `internal/oplog/` — operational sidecar log for hook-level errors that cannot land in the signed audit log without invalidating the envelope. Append-only JSONL at `session/operational.log` with `{ts, level, phase, seq?, msg}`. Every hook error site (parse, append, close, build, write) writes a structured entry. Privacy-aware by construction: the logger refuses raw input bytes — only sanitized error messages. Explicitly NOT part of the trust envelope; a malicious submitter can delete it and verification still passes (the audit log is the integrity artifact). `Nop` logger drop-in for tests, `Writer` interface prevents `*os.File` leaks.
 - `docs/adr/0009-custom-canonical-json-over-jcs.md` — records why v0.1 freezes Go `encoding/json` HTML-safe defaults as the canonical form rather than migrating mid-draft to RFC 8785 JCS. Forward path to JCS kept open via a future v0.2 predicate URI.
 - `SECURITY.md` — new "Verifier trust model (Trust on First Use)" section. States plainly what v0.1 does not provide (no signer-identity registry, no key revocation cryptography) and what platforms / enterprise triage / researchers should each do about it. v0.3 TEE and v0.4 EAS are named as the closures.
+- `WHY.md` + `FAQ.md` + `docs/evidence/` — the argument for why this format exists now (curl program shutdown 2026-01-26, HackerOne AI policy 2026-02-18, Bugcrowd + Intigriti policy changes in 2026-Q1), with a local archive of dated sources so the claim survives URL rot. FAQ takes the adversarial questions head-on (why not Sigstore/in-toto as-is, how jesses differs from Aegis, what breaks first).
+- `.github/actions/jesses-verify/` — reusable composite GitHub Action so any repo can gate merges on `.jes` envelope verification without hand-rolling the `go install` + invocation + exit-handling. Inputs: `session`, `report`, `bare-policy`, `version`, `fail-on-warn`; outputs: `report-path`, `verdict`.
+
+### Fixed
+
+- Release workflow was pinned to `cosign-release: v3.0.0` — a tag that doesn't exist. First release attempt on v0.1.0 tag failed at `Install cosign` with exit 22 (404). Pinned to `v3.0.6` so v0.1.1 is the first tag that auto-produces signed binaries + SLSA provenance + SBOMs.
+- golangci-lint had been red on main since the Wave D structured-error commit. Cleaned all violations: `gofumpt` formatting on six multi-line `VerifyError` literals in `internal/verify/verify.go`; `misspell` "labelled" → "labeled" in `internal/render/render.go`; dead `escMD` function in `internal/provenance/provenance.go` and dead `ensurePrivKey` shim in `cmd/jesses/run.go` (orphaned by the keyring extraction); `errorlint` type-assertion on `childErr` → `errors.As`; `unparam` unused `width` on `renderGateLine`; gosec `G115` / `G204` annotated with rationale at the two legitimate sites (audit seq narrowing, documented `jesses run -- <cmd>` CLI contract).
 
 ## [0.1.0] — first release
 
