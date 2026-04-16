@@ -95,6 +95,9 @@ jesses/
 │  ├─ keyring/                  ed25519 key lifecycle
 │  │  └─ keyring.go             load / create / perm-check (~/.jesses/key)
 │  │
+│  ├─ oplog/                    operational (NOT signed) diagnostic log
+│  │  └─ oplog.go               JSONL sidecar for dropped events, extractor errors
+│  │
 │  ├─ verify/                   verifier engine — 6 gate checks
 │  │  ├─ verify.go              orchestrator
 │  │  ├─ checks.go              individual gates
@@ -321,7 +324,7 @@ This architecture is a single in-house synthesis pass across those three bodies 
 - **Languages**: Go
 
 ## Overview
-- **89** source files, **14,307** lines of code
+- **93** source files, **15,108** lines of code
 - **6** modules
 
 ## Entry Points
@@ -332,8 +335,8 @@ This architecture is a single in-house synthesis pass across those three bodies 
 
 | Module | Files | Lines | Types |
 |--------|-------|-------|-------|
-| `internal` | 69 | 11,230 | .go |
-| `cmd` | 13 | 2,118 | .go, .html |
+| `internal` | 73 | 12,018 | .go |
+| `cmd` | 13 | 2,131 | .go, .html |
 | `pkg` | 5 | 546 | .go |
 | `tools` | 1 | 275 | .go |
 | `examples` | 1 | 138 | .py |
