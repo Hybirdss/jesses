@@ -108,13 +108,13 @@ func (s Style) boxc() boxChars {
 	return boxUnicode
 }
 
-// Section is one labelled group of lines inside a Box.
+// Section is one labeled group of lines inside a Box.
 type Section struct {
 	Label string   // shown in the section separator ("mandatory", "advisory", ...)
 	Lines []string // rendered lines (already colored if desired)
 }
 
-// Box renders a titled box with one or more labelled sections.
+// Box renders a titled box with one or more labeled sections.
 // width is the inner width (excluding borders). Content lines that
 // exceed width are truncated with an ellipsis; callers should size
 // lines appropriately.

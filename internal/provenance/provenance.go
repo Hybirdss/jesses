@@ -244,7 +244,7 @@ func Validate(rpt Report, auditLogPath string, policy BarePolicy) (Report, bool,
 			for _, e := range matchByHashPrefix(eventsByHash, c.CitedEventHash) {
 				ev = &e
 				c.CitedEventHash = leafHashHex(e)
-				c.CitedEventSeq = int64(e.Seq)
+				c.CitedEventSeq = int64(e.Seq) //nolint:gosec // audit Seq is a monotonic counter; practical session sizes stay well within int64 range
 				break
 			}
 			if ev == nil {
@@ -317,12 +317,12 @@ func GenerateTimeline(auditLogPath string, citations []Citation) (string, error)
 			warnCount++
 		case "deny":
 			denyCount++
-			denies = append(denies, auditEvt(e))
+			denies = append(denies, e)
 		case "commit":
 			commitCount++
 		}
 		if _, ok := citedBySeq[e.Seq]; ok {
-			citeds = append(citeds, auditEvt(e))
+			citeds = append(citeds, e)
 		}
 	}
 	sessionID := ""
@@ -446,7 +446,7 @@ func loadEvents(path string) ([]audit.Event, map[string]audit.Event, map[int64]a
 		events = append(events, ev)
 		h := leafHashHex(ev)
 		byHash[h] = ev
-		bySeq[int64(ev.Seq)] = ev
+		bySeq[int64(ev.Seq)] = ev //nolint:gosec // audit Seq is a monotonic counter; practical session sizes stay well within int64 range
 	}
 	if err := sc.Err(); err != nil {
 		return nil, nil, nil, err
@@ -507,14 +507,6 @@ func snippetOf(e audit.Event) string {
 	if len(s) > 80 {
 		s = s[:77] + "..."
 	}
-	return s
-}
-
-// escMD escapes markdown special characters in the snippet so it
-// renders correctly inside a table cell.
-func escMD(s string) string {
-	s = strings.ReplaceAll(s, "|", "\\|")
-	s = strings.ReplaceAll(s, "`", "'")
 	return s
 }
 
