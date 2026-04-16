@@ -3,10 +3,10 @@ package main
 import (
 	"bytes"
 	"context"
-	"crypto/ed25519"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -163,7 +163,12 @@ func runRun(args []string) int {
 	})
 
 	// Exec the child and tee stdout/stderr.
-	child := exec.Command(cmdArgs[0], cmdArgs[1:]...)
+	// cmdArgs is user-supplied via argv — `jesses run -- <cmd> [args]`
+	// is intentionally a generic process-wrap subcommand. Tainted
+	// input is the whole point. Safety comes from the session envelope
+	// recording exact argv + sha256 + cwd + parent_pid, not from
+	// input sanitization.
+	child := exec.Command(cmdArgs[0], cmdArgs[1:]...) //nolint:gosec // G204: subprocess wrap is the CLI contract
 	stdoutF, _ := os.Create(stdoutPath)
 	stderrF, _ := os.Create(stderrPath)
 	defer stdoutF.Close()
@@ -182,7 +187,8 @@ func runRun(args []string) int {
 	exitCode := 0
 	signalName := ""
 	if childErr != nil {
-		if ee, ok := childErr.(*exec.ExitError); ok {
+		var ee *exec.ExitError
+		if errors.As(childErr, &ee) {
 			if ws, ok := ee.Sys().(syscall.WaitStatus); ok {
 				exitCode = ws.ExitStatus()
 				if ws.Signaled() {
@@ -255,11 +261,4 @@ func joinArgs(args []string) string {
 		b.WriteString(a)
 	}
 	return b.String()
-}
-
-// ensurePrivKey is a thin re-export of loadOrCreateKey for readability
-// inside runRun's call site. The actual implementation lives in
-// hook.go because both subcommands need it.
-func ensurePrivKey(path, dir string) (ed25519.PrivateKey, error) {
-	return loadOrCreateKey(path, dir)
 }

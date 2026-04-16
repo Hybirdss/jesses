@@ -132,8 +132,10 @@ func Verify(ctx context.Context, opts Options) (Report, error) {
 			g.Error = &VerifyError{Gate: "G2", Code: ErrCodeMerkleMismatch, Expected: pred.MerkleRoot, Got: root}
 		} else if count != pred.LeafCount {
 			g.Detail = fmt.Sprintf("leaf count mismatch: got %d want %d", count, pred.LeafCount)
-			g.Error = &VerifyError{Gate: "G2", Code: ErrCodeLeafCountMismatch,
-				Expected: fmt.Sprintf("%d", pred.LeafCount), Got: fmt.Sprintf("%d", count)}
+			g.Error = &VerifyError{
+				Gate: "G2", Code: ErrCodeLeafCountMismatch,
+				Expected: fmt.Sprintf("%d", pred.LeafCount), Got: fmt.Sprintf("%d", count),
+			}
 		} else {
 			g.Pass = true
 			g.Detail = fmt.Sprintf("%d leaves, root %s…", count, pred.MerkleRoot[:16])
@@ -149,8 +151,10 @@ func Verify(ctx context.Context, opts Options) (Report, error) {
 		g.Error = &VerifyError{Gate: "G3", Code: ErrCodePrecommitInvalid, Got: e3.Error()}
 	} else if !match {
 		g.Detail = "precommit BodyHash does not match canonical receipt"
-		g.Error = &VerifyError{Gate: "G3", Code: ErrCodePrecommitInvalid,
-			Expected: pred.Precommit.LogEntry.BodyHash}
+		g.Error = &VerifyError{
+			Gate: "G3", Code: ErrCodePrecommitInvalid,
+			Expected: pred.Precommit.LogEntry.BodyHash,
+		}
 	} else if opts.RekorClient != nil {
 		fetched, e := opts.RekorClient.Fetch(ctx, pred.Precommit.LogEntry.LogIndex)
 		if e != nil {
@@ -158,8 +162,10 @@ func Verify(ctx context.Context, opts Options) (Report, error) {
 			g.Error = &VerifyError{Gate: "G3", Code: ErrCodeRekorFetch, Got: e.Error()}
 		} else if fetched.BodyHash != pred.Precommit.LogEntry.BodyHash {
 			g.Detail = "rekor entry body hash mismatch"
-			g.Error = &VerifyError{Gate: "G3", Code: ErrCodeRekorBodyHash,
-				Expected: pred.Precommit.LogEntry.BodyHash, Got: fetched.BodyHash}
+			g.Error = &VerifyError{
+				Gate: "G3", Code: ErrCodeRekorBodyHash,
+				Expected: pred.Precommit.LogEntry.BodyHash, Got: fetched.BodyHash,
+			}
 		} else {
 			g.Pass = true
 			g.Detail = fmt.Sprintf("log index %d, signed at %s", fetched.LogIndex, fetched.SignedAt.Format("2006-01-02 15:04:05Z"))
@@ -186,8 +192,10 @@ func Verify(ctx context.Context, opts Options) (Report, error) {
 			if gotHex != pred.ScopeHash {
 				g.Detail = fmt.Sprintf("scope hash mismatch: got %s want %s",
 					gotHex[:16]+"…", pred.ScopeHash[:16]+"…")
-				g.Error = &VerifyError{Gate: "G4", Code: ErrCodeScopeMismatch,
-					Expected: pred.ScopeHash, Got: gotHex}
+				g.Error = &VerifyError{
+					Gate: "G4", Code: ErrCodeScopeMismatch,
+					Expected: pred.ScopeHash, Got: gotHex,
+				}
 			} else {
 				g.Pass = true
 				g.Detail = "scope.txt matches committed hash"
@@ -208,8 +216,10 @@ func Verify(ctx context.Context, opts Options) (Report, error) {
 			g.Error = &VerifyError{Gate: "G5", Code: ErrCodePolicyScan, Got: e5.Error()}
 		} else if breaches > 0 {
 			g.Detail = fmt.Sprintf("%d of %d events breached policy", breaches, total)
-			g.Error = &VerifyError{Gate: "G5", Code: ErrCodePolicyBreach,
-				Count: breaches, Total: total}
+			g.Error = &VerifyError{
+				Gate: "G5", Code: ErrCodePolicyBreach,
+				Count: breaches, Total: total,
+			}
 		} else {
 			g.Pass = true
 			g.Detail = fmt.Sprintf("all %d events allowed by scope", total)
@@ -359,7 +369,7 @@ func RenderStyled(rpt Report, st render.Style) string {
 		} else if g.Severity == "mandatory" {
 			mandatoryFail = true
 		}
-		line := renderGateLine(g, st, width-2)
+		line := renderGateLine(g, st)
 		if g.Severity == "advisory" {
 			advisory = append(advisory, line)
 		} else {
@@ -406,7 +416,7 @@ func RenderStyled(rpt Report, st render.Style) string {
 
 // renderGateLine formats one gate row: marker, id, title, detail.
 // Aligned columns for visual consistency.
-func renderGateLine(g Gate, st render.Style, width int) string {
+func renderGateLine(g Gate, st render.Style) string {
 	var mark string
 	switch {
 	case g.Pass:
@@ -468,8 +478,10 @@ func checkDeliverable(reportPath, auditLogPath string, b *attest.DeliverableBind
 		passed, len(rpt.Citations), len(rpt.BareClaims), b.BarePolicy)
 	if !ok || passed != len(rpt.Citations) {
 		return false, detail,
-			&VerifyError{Gate: "G7", Code: ErrCodeCitationInvalid,
-				Count: passed, Total: len(rpt.Citations)}
+			&VerifyError{
+				Gate: "G7", Code: ErrCodeCitationInvalid,
+				Count: passed, Total: len(rpt.Citations),
+			}
 	}
 	return true, detail, nil
 }
