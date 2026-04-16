@@ -16,6 +16,7 @@ import (
 	"github.com/Hybirdss/jesses/internal/audit"
 	"github.com/Hybirdss/jesses/internal/extractors/dispatch"
 	"github.com/Hybirdss/jesses/internal/keyring"
+	"github.com/Hybirdss/jesses/internal/oplog"
 	"github.com/Hybirdss/jesses/internal/ots"
 	"github.com/Hybirdss/jesses/internal/policy"
 	"github.com/Hybirdss/jesses/internal/rekor"
@@ -55,6 +56,7 @@ func runHook(args []string) int {
 	scopePath := filepath.Join(*sessionDir, "scope.txt")
 	logPath := filepath.Join(*sessionDir, "session.log")
 	envPath := filepath.Join(*sessionDir, "session.jes")
+	opPath := filepath.Join(*sessionDir, "operational.log")
 
 	scopeBytes, err := os.ReadFile(scopePath)
 	if err != nil {
@@ -89,6 +91,20 @@ func runHook(args []string) int {
 		}
 	}
 
+	// operational.log is opened BEFORE session so a session-open
+	// failure can be recorded. Falls back to a Nop logger if the file
+	// cannot be created — we do not want to block hunting on a
+	// diagnostic log write failure.
+	var op oplog.Writer
+	opLogger, opErr := oplog.Open(opPath)
+	if opErr != nil {
+		fmt.Fprintf(os.Stderr, "hook: operational.log: %v (continuing with no-op logger)\n", opErr)
+		op = oplog.Nop{}
+	} else {
+		op = opLogger
+	}
+	defer op.Close()
+
 	ctx := context.Background()
 	sess, err := session.Open(ctx, session.Config{
 		LogPath:    logPath,
@@ -98,9 +114,11 @@ func runHook(args []string) int {
 		OTS:        oc,
 	})
 	if err != nil {
+		_ = op.Error("open", err.Error())
 		fmt.Fprintf(os.Stderr, "hook: open session: %v\n", err)
 		return 1
 	}
+	_ = op.Info("open", "session opened")
 
 	enc := json.NewEncoder(os.Stdout)
 	sc := bufio.NewScanner(os.Stdin)
@@ -113,6 +131,10 @@ func runHook(args []string) int {
 		}
 		var raw map[string]any
 		if err := json.Unmarshal(line, &raw); err != nil {
+			// Only the error message is logged — never the raw line,
+			// which may contain secrets the hook would otherwise never
+			// see in clear form.
+			_ = op.Warn("parse", err.Error())
 			enc.Encode(map[string]any{"decision": "error", "reason": err.Error()})
 			continue
 		}
@@ -121,6 +143,7 @@ func runHook(args []string) int {
 		}
 		ev := hookBuildEvent(raw, pol)
 		if err := sess.Append(ev); err != nil {
+			_ = op.ErrorAt(ev.Seq, "append", err.Error())
 			enc.Encode(map[string]any{"decision": "error", "reason": err.Error()})
 			continue
 		}
@@ -133,18 +156,22 @@ func runHook(args []string) int {
 
 	fin, err := sess.Close(ctx)
 	if err != nil {
+		_ = op.Error("close", err.Error())
 		fmt.Fprintf(os.Stderr, "hook: close: %v\n", err)
 		return 1
 	}
 	env, err := attest.Build(fin)
 	if err != nil {
+		_ = op.Error("build", err.Error())
 		fmt.Fprintf(os.Stderr, "hook: build: %v\n", err)
 		return 1
 	}
 	if err := attest.WriteFile(envPath, env); err != nil {
+		_ = op.Error("write", err.Error())
 		fmt.Fprintf(os.Stderr, "hook: write envelope: %v\n", err)
 		return 1
 	}
+	_ = op.Info("close", fmt.Sprintf("envelope written leaves=%d rekor=%d", fin.LeafCount, fin.Precommit.LogEntry.LogIndex))
 	fmt.Fprintf(os.Stderr, "jesses: %s (leaves=%d, rekor=%d)\n",
 		envPath, fin.LeafCount, fin.Precommit.LogEntry.LogIndex)
 	return 0
