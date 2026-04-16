@@ -114,8 +114,12 @@ func runRun(args []string) int {
 	var rc rekor.Client
 	var oc ots.Client
 	if *fake {
-		rc = rekor.NewFakeClient()
-		oc = ots.NewFakeClient()
+		var err error
+		rc, oc, err = newFakeClients()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "run: %v\n", err)
+			return 1
+		}
 	} else {
 		rc = rekor.NewHTTPClient(*rekorURL)
 		if *otsCalendar != "" {

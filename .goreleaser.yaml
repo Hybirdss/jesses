@@ -29,6 +29,12 @@ builds:
   - id: jesses
     main: ./cmd/jesses
     binary: jesses
+    # `production` tag strips rekor.FakeClient, ots.FakeClient, and
+    # the --fake-rekor CLI helper from the binary. A released binary
+    # cannot silently talk to an in-memory transparency log — the
+    # trust model holds by construction, not by policy.
+    tags:
+      - production
     flags:
       - -trimpath
     ldflags:

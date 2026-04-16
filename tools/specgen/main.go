@@ -1,3 +1,5 @@
+//go:build !production
+
 // Command specgen generates the canonical test-vector corpus for
 // the jesses v0.1 specification.
 //
@@ -22,6 +24,11 @@
 // Regeneration:
 //
 //	go run ./tools/specgen ./spec/test-vectors/v0.1
+//
+// Build tag: this tool depends on rekor.FakeClient and ots.FakeClient
+// and therefore requires the dev build (no `production` tag). That is
+// the expected configuration for regenerating spec vectors; production
+// release builds do not include this binary.
 package main
 
 import (

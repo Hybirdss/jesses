@@ -280,12 +280,3 @@ type Report struct {
 	OK        bool   `json:"ok"`
 	SessionID string `json:"session_id"`
 }
-
-// NewFakeRekor exposes the rekor.FakeClient for tests written against
-// this package. It avoids forcing downstream tests to import
-// internal/rekor (which would break if a consumer assumed internal/*
-// means public).
-func NewFakeRekor() rekor.Client { return rekor.NewFakeClient() }
-
-// NewFakeOTS exposes the ots.FakeClient for tests.
-func NewFakeOTS() ots.Client { return ots.NewFakeClient() }
