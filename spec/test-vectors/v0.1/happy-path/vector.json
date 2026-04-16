@@ -13,8 +13,14 @@
         "name": "G2",
         "title": "merkle root",
         "pass": false,
-        "detail": "root mismatch: got 6eb6634a5718879f2092ecffffb8671765c8f3cb02d4cbcccf1af78218b08dbe want ac3de2881681ed9a7e99450145d18446d8012ffd2b4ce83023555598b54384fa",
-        "severity": "mandatory"
+        "detail": "root mismatch: got 988b4051aeb1c136bb87d04cee737ef00bfdf2eadd490fec768819278d72c1b3 want ac3de2881681ed9a7e99450145d18446d8012ffd2b4ce83023555598b54384fa",
+        "severity": "mandatory",
+        "error": {
+          "gate": "G2",
+          "code": "merkle_root_mismatch",
+          "expected": "ac3de2881681ed9a7e99450145d18446d8012ffd2b4ce83023555598b54384fa",
+          "got": "988b4051aeb1c136bb87d04cee737ef00bfdf2eadd490fec768819278d72c1b3"
+        }
       },
       {
         "name": "G3",
@@ -34,7 +40,7 @@
         "name": "G5",
         "title": "policy compliance",
         "pass": true,
-        "detail": "all 12 events allowed by scope",
+        "detail": "all 16 events allowed by scope",
         "severity": "mandatory"
       },
       {

@@ -188,8 +188,27 @@ Verifier behavior is identical in both modes: the Merkle tree uses the same cano
 
 The verifier exits `0` on PASS and `1` on FAIL. Output is emitted in two forms:
 
-- **JSON** (`--output json`) for machine integration with H1 / BC / Immunefi intake webhooks
+- **JSON** (`--json`) for machine integration with H1 / BC / Immunefi intake webhooks
 - **Human** (default) for terminal display
+
+When a mandatory gate fails in the JSON form, its `error` field carries a stable machine-readable payload:
+
+```json
+{
+  "name":     "G2",
+  "pass":     false,
+  "severity": "mandatory",
+  "detail":   "root mismatch: got 75a7… want fb52…",
+  "error": {
+    "gate":     "G2",
+    "code":     "merkle_root_mismatch",
+    "expected": "fb5232305b707e6697d1ecac35dcd71560601aa911bea6abfed3938f8a80ca74",
+    "got":      "75a76d137ed7d1c3f8dd6d7257206b90bc9562ed489409c1cbdca7aed891dd82"
+  }
+}
+```
+
+The `code` vocabulary is frozen per major version — see [`internal/verify/errors.go`](./internal/verify/errors.go) for the complete set. Consumers MUST pivot off `code` rather than parsing `detail`; `detail` is a human-readable gloss and its phrasing may change between patch releases.
 
 ---
 

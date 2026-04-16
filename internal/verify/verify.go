@@ -50,6 +50,12 @@ type Gate struct {
 	// Severity: "mandatory" blocks the report when Pass is false;
 	// "advisory" contributes to the detail view but does not fail.
 	Severity string `json:"severity"`
+
+	// Error is the machine-readable failure detail. Populated for
+	// every failed mandatory gate with a stable Code plus typed
+	// fields a triage bot can pivot off without parsing Detail.
+	// Nil when the gate passed or is an informational skip.
+	Error *VerifyError `json:"error,omitempty"`
 }
 
 // Report is the full verifier output.
@@ -92,14 +98,18 @@ func Verify(ctx context.Context, opts Options) (Report, error) {
 	pub, err := hex.DecodeString(pred.PubKey)
 	if err != nil || len(pub) != ed25519.PublicKeySize {
 		g.Detail = "invalid ed25519 public key"
+		g.Error = &VerifyError{Gate: "G1", Code: ErrCodeInvalidPubKey, Got: pred.PubKey}
 	} else if len(env.Signatures) == 0 {
 		g.Detail = "no signatures"
+		g.Error = &VerifyError{Gate: "G1", Code: ErrCodeNoSignatures}
 	} else {
 		sig, e1 := base64.StdEncoding.DecodeString(env.Signatures[0].Sig)
 		if e1 != nil {
 			g.Detail = "signature decode error: " + e1.Error()
+			g.Error = &VerifyError{Gate: "G1", Code: ErrCodeSigDecode, Got: e1.Error()}
 		} else if !ed25519.Verify(ed25519.PublicKey(pub), body, sig) {
 			g.Detail = "signature mismatch"
+			g.Error = &VerifyError{Gate: "G1", Code: ErrCodeSigMismatch}
 		} else {
 			g.Pass = true
 			g.Detail = "ed25519 signature valid"
@@ -116,10 +126,14 @@ func Verify(ctx context.Context, opts Options) (Report, error) {
 		root, count, e2 := recomputeMerkleRoot(opts.AuditLogPath)
 		if e2 != nil {
 			g.Detail = "audit log read error: " + e2.Error()
+			g.Error = &VerifyError{Gate: "G2", Code: ErrCodeAuditRead, Got: e2.Error()}
 		} else if root != pred.MerkleRoot {
 			g.Detail = fmt.Sprintf("root mismatch: got %s want %s", root, pred.MerkleRoot)
+			g.Error = &VerifyError{Gate: "G2", Code: ErrCodeMerkleMismatch, Expected: pred.MerkleRoot, Got: root}
 		} else if count != pred.LeafCount {
 			g.Detail = fmt.Sprintf("leaf count mismatch: got %d want %d", count, pred.LeafCount)
+			g.Error = &VerifyError{Gate: "G2", Code: ErrCodeLeafCountMismatch,
+				Expected: fmt.Sprintf("%d", pred.LeafCount), Got: fmt.Sprintf("%d", count)}
 		} else {
 			g.Pass = true
 			g.Detail = fmt.Sprintf("%d leaves, root %s…", count, pred.MerkleRoot[:16])
@@ -132,14 +146,20 @@ func Verify(ctx context.Context, opts Options) (Report, error) {
 	match, e3 := precommit.Verify(pred.Precommit)
 	if e3 != nil {
 		g.Detail = "precommit verify error: " + e3.Error()
+		g.Error = &VerifyError{Gate: "G3", Code: ErrCodePrecommitInvalid, Got: e3.Error()}
 	} else if !match {
 		g.Detail = "precommit BodyHash does not match canonical receipt"
+		g.Error = &VerifyError{Gate: "G3", Code: ErrCodePrecommitInvalid,
+			Expected: pred.Precommit.LogEntry.BodyHash}
 	} else if opts.RekorClient != nil {
 		fetched, e := opts.RekorClient.Fetch(ctx, pred.Precommit.LogEntry.LogIndex)
 		if e != nil {
 			g.Detail = "rekor fetch: " + e.Error()
+			g.Error = &VerifyError{Gate: "G3", Code: ErrCodeRekorFetch, Got: e.Error()}
 		} else if fetched.BodyHash != pred.Precommit.LogEntry.BodyHash {
 			g.Detail = "rekor entry body hash mismatch"
+			g.Error = &VerifyError{Gate: "G3", Code: ErrCodeRekorBodyHash,
+				Expected: pred.Precommit.LogEntry.BodyHash, Got: fetched.BodyHash}
 		} else {
 			g.Pass = true
 			g.Detail = fmt.Sprintf("log index %d, signed at %s", fetched.LogIndex, fetched.SignedAt.Format("2006-01-02 15:04:05Z"))
@@ -159,11 +179,15 @@ func Verify(ctx context.Context, opts Options) (Report, error) {
 		raw, e4 := os.ReadFile(opts.ScopePath)
 		if e4 != nil {
 			g.Detail = "scope read error: " + e4.Error()
+			g.Error = &VerifyError{Gate: "G4", Code: ErrCodeScopeRead, Got: e4.Error()}
 		} else {
 			h := sha256.Sum256(raw)
-			if hex.EncodeToString(h[:]) != pred.ScopeHash {
+			gotHex := hex.EncodeToString(h[:])
+			if gotHex != pred.ScopeHash {
 				g.Detail = fmt.Sprintf("scope hash mismatch: got %s want %s",
-					hex.EncodeToString(h[:])[:16]+"…", pred.ScopeHash[:16]+"…")
+					gotHex[:16]+"…", pred.ScopeHash[:16]+"…")
+				g.Error = &VerifyError{Gate: "G4", Code: ErrCodeScopeMismatch,
+					Expected: pred.ScopeHash, Got: gotHex}
 			} else {
 				g.Pass = true
 				g.Detail = "scope.txt matches committed hash"
@@ -181,8 +205,11 @@ func Verify(ctx context.Context, opts Options) (Report, error) {
 		breaches, total, e5 := countBreaches(opts.AuditLogPath)
 		if e5 != nil {
 			g.Detail = "policy scan error: " + e5.Error()
+			g.Error = &VerifyError{Gate: "G5", Code: ErrCodePolicyScan, Got: e5.Error()}
 		} else if breaches > 0 {
 			g.Detail = fmt.Sprintf("%d of %d events breached policy", breaches, total)
+			g.Error = &VerifyError{Gate: "G5", Code: ErrCodePolicyBreach,
+				Count: breaches, Total: total}
 		} else {
 			g.Pass = true
 			g.Detail = fmt.Sprintf("all %d events allowed by scope", total)
@@ -201,11 +228,15 @@ func Verify(ctx context.Context, opts Options) (Report, error) {
 	case opts.ReportPath == "":
 		g.Detail = fmt.Sprintf("envelope declares report %q but none provided to verify", binding.Path)
 		g.Severity = "mandatory"
+		g.Error = &VerifyError{Gate: "G7", Code: ErrCodeMissingReport, Expected: binding.Path}
 	default:
 		g.Severity = "mandatory"
-		g7OK, detail := checkDeliverable(opts.ReportPath, opts.AuditLogPath, binding)
+		g7OK, detail, verr := checkDeliverable(opts.ReportPath, opts.AuditLogPath, binding)
 		g.Pass = g7OK
 		g.Detail = detail
+		if !g7OK && verr != nil {
+			g.Error = verr
+		}
 	}
 	rpt.Gates = append(rpt.Gates, g)
 
@@ -396,28 +427,36 @@ func renderGateLine(g Gate, st render.Style, width int) string {
 // reads the file, re-hashes it, compares to the binding's SHA-256,
 // parses citations, and validates each against the audit log.
 //
-// Returns (pass, human-readable-detail). The bare-policy recorded
-// in the binding dictates whether bare claims count toward a fail.
-func checkDeliverable(reportPath, auditLogPath string, b *attest.DeliverableBinding) (bool, string) {
+// Returns (pass, human-readable-detail, structured-error). Structured
+// error is nil on success; on failure it carries the stable Code plus
+// Expected/Got hashes or counts so triage bots can pivot off it. The
+// bare-policy recorded in the binding dictates whether bare claims
+// count toward a fail.
+func checkDeliverable(reportPath, auditLogPath string, b *attest.DeliverableBinding) (bool, string, *VerifyError) {
 	raw, err := os.ReadFile(reportPath)
 	if err != nil {
-		return false, "report read error: " + err.Error()
+		return false, "report read error: " + err.Error(),
+			&VerifyError{Gate: "G7", Code: ErrCodeReportRead, Got: err.Error()}
 	}
 	gotHash := sha256hex(raw)
 	if gotHash != b.SHA256 {
 		return false, fmt.Sprintf("hash mismatch: got %s… want %s…",
-			gotHash[:16], b.SHA256[:16])
+				gotHash[:16], b.SHA256[:16]),
+			&VerifyError{Gate: "G7", Code: ErrCodeReportHash, Expected: b.SHA256, Got: gotHash}
 	}
 	rpt, err := provenance.Parse(reportPath)
 	if err != nil {
-		return false, "parse error: " + err.Error()
+		return false, "parse error: " + err.Error(),
+			&VerifyError{Gate: "G7", Code: ErrCodeReportParse, Got: err.Error()}
 	}
 	if auditLogPath == "" {
-		return false, "audit log path required for G7 citation check"
+		return false, "audit log path required for G7 citation check",
+			&VerifyError{Gate: "G7", Code: ErrCodeMissingAuditForG7}
 	}
 	rpt, ok, err := provenance.Validate(rpt, auditLogPath, provenance.BarePolicy(b.BarePolicy))
 	if err != nil {
-		return false, "validate error: " + err.Error()
+		return false, "validate error: " + err.Error(),
+			&VerifyError{Gate: "G7", Code: ErrCodeReportValidate, Got: err.Error()}
 	}
 	passed := 0
 	for _, v := range rpt.Validations {
@@ -427,7 +466,12 @@ func checkDeliverable(reportPath, auditLogPath string, b *attest.DeliverableBind
 	}
 	detail := fmt.Sprintf("%d/%d citations valid, %d bare claims (policy: %s)",
 		passed, len(rpt.Citations), len(rpt.BareClaims), b.BarePolicy)
-	return ok && passed == len(rpt.Citations), detail
+	if !ok || passed != len(rpt.Citations) {
+		return false, detail,
+			&VerifyError{Gate: "G7", Code: ErrCodeCitationInvalid,
+				Count: passed, Total: len(rpt.Citations)}
+	}
+	return true, detail, nil
 }
 
 // sha256hex returns the hex-encoded SHA-256 of b.
