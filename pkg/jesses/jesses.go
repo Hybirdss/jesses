@@ -246,13 +246,39 @@ func Verify(ctx context.Context, opts VerifyOptions) (Report, error) {
 	}
 	gates := make([]Gate, len(rpt.Gates))
 	for i, g := range rpt.Gates {
-		gates[i] = Gate(g)
+		gates[i] = Gate{
+			Name:     g.Name,
+			Title:    g.Title,
+			Pass:     g.Pass,
+			Detail:   g.Detail,
+			Severity: g.Severity,
+			Error:    mirrorVerifyError(g.Error),
+		}
 	}
 	return Report{
 		Gates:     gates,
 		OK:        rpt.OK,
 		SessionID: rpt.SessionID,
 	}, nil
+}
+
+// mirrorVerifyError copies the internal VerifyError shape to the
+// public mirror so external consumers do not import internal/verify.
+func mirrorVerifyError(src *verify.VerifyError) *VerifyError {
+	if src == nil {
+		return nil
+	}
+	return &VerifyError{
+		Gate:      src.Gate,
+		Code:      src.Code,
+		Expected:  src.Expected,
+		Got:       src.Got,
+		LeafIdx:   src.LeafIdx,
+		LogOffset: src.LogOffset,
+		Count:     src.Count,
+		Total:     src.Total,
+		ProofPath: src.ProofPath,
+	}
 }
 
 // VerifyOptions mirrors verify.Options without leaking the internal
@@ -267,11 +293,27 @@ type VerifyOptions struct {
 // Gate mirrors verify.Gate. Using a type alias would lock us to the
 // internal shape; a conversion keeps the boundary clean.
 type Gate struct {
-	Name     string `json:"name"`
-	Title    string `json:"title"`
-	Pass     bool   `json:"pass"`
-	Detail   string `json:"detail"`
-	Severity string `json:"severity"`
+	Name     string       `json:"name"`
+	Title    string       `json:"title"`
+	Pass     bool         `json:"pass"`
+	Detail   string       `json:"detail"`
+	Severity string       `json:"severity"`
+	Error    *VerifyError `json:"error,omitempty"`
+}
+
+// VerifyError mirrors verify.VerifyError — the machine-readable
+// structured detail for a failed gate. See internal/verify/errors.go
+// for the stable Code vocabulary and field semantics.
+type VerifyError struct {
+	Gate      string   `json:"gate"`
+	Code      string   `json:"code"`
+	Expected  string   `json:"expected,omitempty"`
+	Got       string   `json:"got,omitempty"`
+	LeafIdx   int      `json:"leaf_idx,omitempty"`
+	LogOffset int64    `json:"log_offset,omitempty"`
+	Count     int      `json:"count,omitempty"`
+	Total     int      `json:"total,omitempty"`
+	ProofPath []string `json:"proof_path,omitempty"`
 }
 
 // Report mirrors verify.Report.
