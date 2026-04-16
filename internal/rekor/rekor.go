@@ -22,11 +22,9 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"sync"
 	"time"
 )
 
@@ -159,47 +157,6 @@ func (c *HTTPClient) Fetch(ctx context.Context, logIndex int64) (Entry, error) {
 		SignedAt:   time.Unix(raw.IntegratedTime, 0).UTC(),
 		BodyBase64: raw.Body,
 	}, nil
-}
-
-// FakeClient is a deterministic in-memory Client for tests and for
-// offline CI flows. Upload assigns ascending log indices; Fetch
-// retrieves any prior Upload.
-type FakeClient struct {
-	mu      sync.Mutex
-	entries []Entry
-	logID   string
-}
-
-// NewFakeClient returns a FakeClient with a fixed LogID. Tests can
-// rely on LogID being the same across runs so goldens stay stable.
-func NewFakeClient() *FakeClient {
-	return &FakeClient{logID: "fake-log-0000000000000000000000000000000000000000000000000000000000000000"}
-}
-
-// Upload records body in the fake log.
-func (f *FakeClient) Upload(_ context.Context, body []byte) (Entry, error) {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	idx := int64(len(f.entries))
-	e := Entry{
-		LogIndex:   idx,
-		LogID:      f.logID,
-		BodyHash:   hex.EncodeToString(hashSHA256(body)),
-		SignedAt:   time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC).Add(time.Duration(idx) * time.Second),
-		BodyBase64: base64.StdEncoding.EncodeToString(body),
-	}
-	f.entries = append(f.entries, e)
-	return e, nil
-}
-
-// Fetch retrieves a previously uploaded entry by index.
-func (f *FakeClient) Fetch(_ context.Context, logIndex int64) (Entry, error) {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	if logIndex < 0 || logIndex >= int64(len(f.entries)) {
-		return Entry{}, errors.New("rekor: log index out of range")
-	}
-	return f.entries[logIndex], nil
 }
 
 // hashSHA256 is a small helper that avoids importing crypto/sha256 at
