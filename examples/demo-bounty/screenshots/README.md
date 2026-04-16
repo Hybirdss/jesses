@@ -6,11 +6,14 @@ Real-run screenshots of `jesses verify`, `jesses stats`, `jesses show`.
 
 | File | Source |
 |---|---|
+| `hero.svg` | hand-authored triptych — session → seal → verify (not a terminal capture) |
 | `verify.svg` | `jesses verify --offline --report report.md session.jes` |
 | `stats.svg` | `jesses stats session.jes` |
 | `show.svg` | `jesses show session.jes` |
-| `*.ansi` | raw ANSI-escaped captures (source for each SVG) |
+| `*.ansi` | raw ANSI-escaped captures (source for each terminal SVG) |
 | `ansi2svg.py` | zero-dependency Python script that converts ANSI → SVG |
+
+`hero.svg` is the only non-capture here. It's an illustrative flow diagram using the same color palette as the ANSI captures, with SMIL animations (moving packet along the arrows, subtle pulse on the deny row and the G5 failure). It's the hero image at the top of the root README. Edit it by hand.
 
 ## Regenerating
 

