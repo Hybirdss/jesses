@@ -138,7 +138,7 @@ Fields:
 - `seq` — monotonic unsigned integer, starts at 0 for the session's first event
 - `ts` — RFC 3339 with nanosecond precision, UTC
 - `tool` — the Claude Code tool name exactly as dispatched by the hook (`Bash`, `Read`, `Write`, `Edit`, `Glob`, `Grep`, `WebFetch`, `WebSearch`, `Agent`, `NotebookEdit`, or `mcp__<server>__<tool>`)
-- `input_hash` — SHA-256 of the canonical JSON serialization (per RFC 8785) of the raw tool input
+- `input_hash` — SHA-256 of the canonical JSON serialization of the raw tool input; see [`spec/canonical.md`](./spec/canonical.md) for the exact byte-level rules (a strict subset of Go `encoding/json`, close to but not identical to RFC 8785)
 - `input` — present only if `privacy_mode=off`; the raw tool input as JSON
 - `destinations` — tool-specific list of extracted destinations (hosts for Bash/WebFetch, paths for Read/Write/Edit, repos for Agent, etc.)
 - `decision` — one of `allow`, `warn`, `block`
@@ -149,7 +149,7 @@ Fields:
 
 ## 6. Merkle tree construction
 
-The tree follows [RFC 6962 §2.1](https://datatracker.ietf.org/doc/html/rfc6962#section-2.1) byte-exactly. For n events, the tree is built by hashing each canonical event JSON as a leaf, then folding:
+The tree follows [RFC 6962 §2.1](https://datatracker.ietf.org/doc/html/rfc6962#section-2.1) byte-exactly. For n events, the tree is built by hashing each canonical event JSON (see [`spec/canonical.md`](./spec/canonical.md)) as a leaf, then folding:
 
 - leaf hash: `SHA-256(0x00 || canonical_event_bytes)`
 - internal node hash: `SHA-256(0x01 || left_child_hash || right_child_hash)`
