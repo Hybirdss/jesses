@@ -1,0 +1,104 @@
+name: jesses verify
+description: Offline six-gate verification of a .jes session envelope (plus G7 deliverable binding if a report is supplied).
+author: Hybirdss
+
+branding:
+  icon: shield
+  color: blue
+
+inputs:
+  session:
+    description: Path to the .jes session envelope to verify (required).
+    required: true
+  report:
+    description: Optional path to a deliverable report.md. Triggers G7 deliverable-provenance binding enforcement.
+    required: false
+  bare-policy:
+    description: Bare-claim policy when a report is bound — one of `allow`, `warn`, or `strict`. Ignored when `report` is empty.
+    required: false
+    default: warn
+  version:
+    description: jesses version to install via `go install …@<version>`. Accepts `latest`, a release tag (e.g. `v0.1.0`), or a Go pseudo-version.
+    required: false
+    default: latest
+  fail-on-warn:
+    description: If `true`, fail the step when any gate emits WARN. Default `false` — WARN is informational.
+    required: false
+    default: "false"
+
+outputs:
+  report-path:
+    description: Absolute filesystem path to the JSON verification report written by this step.
+    value: ${{ steps.verify.outputs.report-path }}
+  verdict:
+    description: Top-level verdict from the verifier (`PASS` | `FAIL` | `WARN`).
+    value: ${{ steps.verify.outputs.verdict }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: "1.22.x"
+        check-latest: true
+
+    - name: Install jesses
+      id: install
+      shell: bash
+      run: |
+        set -euo pipefail
+        version='${{ inputs.version }}'
+        # Pin to the Go module path declared in README.md#install.
+        go install "github.com/Hybirdss/jesses/cmd/jesses@${version}"
+        # `go install` places binaries in $(go env GOBIN) or $(go env GOPATH)/bin.
+        GOBIN="$(go env GOBIN)"
+        if [[ -z "${GOBIN}" ]]; then
+          GOBIN="$(go env GOPATH)/bin"
+        fi
+        echo "${GOBIN}" >> "${GITHUB_PATH}"
+        "${GOBIN}/jesses" version
+
+    - name: Verify session
+      id: verify
+      shell: bash
+      env:
+        SESSION_PATH: ${{ inputs.session }}
+        REPORT_PATH: ${{ inputs.report }}
+        BARE_POLICY: ${{ inputs.bare-policy }}
+        FAIL_ON_WARN: ${{ inputs.fail-on-warn }}
+      run: |
+        set -euo pipefail
+
+        args=(verify --offline --output json)
+        if [[ -n "${REPORT_PATH:-}" ]]; then
+          args+=(--report "${REPORT_PATH}" --bare-policy "${BARE_POLICY}")
+        fi
+        args+=("${SESSION_PATH}")
+
+        # Capture exit status separately so we can emit structured outputs
+        # even when verification fails (which is a valid outcome, not a
+        # tooling error).
+        set +e
+        output="$(jesses "${args[@]}")"
+        status=$?
+        set -e
+
+        echo "${output}" | tee jesses-verify.json
+        echo "report-path=$(pwd)/jesses-verify.json" >> "${GITHUB_OUTPUT}"
+
+        verdict=$(printf '%s' "${output}" | grep -Eo '"verdict"\s*:\s*"[A-Z]+"' | head -n1 | grep -Eo '[A-Z]+' | tail -n1 || true)
+        if [[ -z "${verdict}" ]]; then
+          verdict="UNKNOWN"
+        fi
+        echo "verdict=${verdict}" >> "${GITHUB_OUTPUT}"
+
+        if [[ ${status} -ne 0 ]]; then
+          echo "::error::jesses verify exited ${status} (verdict=${verdict})"
+          exit ${status}
+        fi
+
+        if [[ "${FAIL_ON_WARN}" == "true" && "${verdict}" == "WARN" ]]; then
+          echo "::error::fail-on-warn enabled and verdict is WARN"
+          exit 1
+        fi
