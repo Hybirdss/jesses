@@ -6,6 +6,8 @@
 
 Cryptographic attestation for autonomous LLM agent sessions. When an agent produces a bug-bounty report, a pentest finding, or a B2B compliance run, `jesses` emits a tamper-evident `.jes` file alongside the deliverable. A triage analyst verifies it in one command and knows — mathematically — that the agent stayed inside an authorized action envelope.
 
+![jesses flow — session → seal → verify](./examples/demo-bounty/screenshots/hero.svg)
+
 ## Quick start
 
 ```bash
